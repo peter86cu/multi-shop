@@ -40,7 +40,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 	
 	public static String rutaDowloadProducto;
 	private  String hostStock;	
-	private boolean desarrollo=true;
+	private boolean desarrollo=false;
 	
 	
 	void cargarServer() throws IOException {

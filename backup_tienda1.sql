@@ -79,8 +79,8 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_administracion_sistema_fecha` BEFORE INSERT ON `administracion_log` FOR EACH ROW BEGIN
-update administracion_sistema SET administracion_sistema.fecha_ultima_ejecucion=NOW() WHERE administracion_sistema.id=NEW.id_administracion;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_administracion_sistema_fecha` BEFORE INSERT ON `administracion_log` FOR EACH ROW BEGIN
+update administracion_sistema SET administracion_sistema.fecha_ultima_ejecucion=NOW() WHERE administracion_sistema.id=NEW.id_administracion;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -737,77 +737,77 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_compra_actualizar_stock` AFTER INSERT ON `entradas_compras` FOR EACH ROW BEGIN
-DECLARE last_insert integer;
-DECLARE precio_contable numeric;
-DECLARE var_cantidad numeric;
-DECLARE var_stock integer;
-DECLARE importe_datos integer;
-DECLARE cantidad_datos integer;
-DECLARE id_producto_datos integer;
-DECLARE id_sucursal_datos integer;
-DECLARE id_entrada_compra_datos integer;
-DECLARE id_usuario_recibio_datos integer;
-DECLARE id_deposito_datos integer;
-DECLARE id_moneda_datos integer;
-DECLARE fin Int DEFAULT FALSE;
-
-DECLARE datos CURSOR FOR 
-				SELECT e.id_entrada_compra,e.id_usuario_recibio, e.id_sucursal, e.id_deposito, d.cantidad, d.importe, d.id_moneda, d.id_producto
-				from entradas_compras e, entradas_compras_detalle d  
-				where e.id_entrada_compra = d.id_entrada_compra and e.estado=3 and e.id_entrada_compra = new.id_entrada_compra;
-             DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=TRUE;
-
-OPEN datos;
-get_runners: LOOP
-set id_entrada_compra_datos=0;
-set id_usuario_recibio_datos=0;
-set id_sucursal_datos=0;
-set id_deposito_datos=0;
-SET cantidad_datos=0;
-set importe_datos=0;
-set id_moneda_datos=0;
-set id_producto_datos=0;
-set var_stock =0;
-set precio_contable=0;
-set var_cantidad=0;
-  FETCH datos INTO id_entrada_compra_datos,id_usuario_recibio_datos,id_sucursal_datos,id_deposito_datos,cantidad_datos,importe_datos,id_moneda_datos,id_producto_datos;
-				 IF fin THEN
-       LEAVE get_runners;
-    END IF;   
-  
-		if claves('metodo_evaluacion')='CP' THEN					 
-					select 
-					((cantidad*costo_contable)+(importe_datos*cantidad_datos))/(cantidad+cantidad_datos) as promedio,(cantidad+cantidad_datos) 
-					into precio_contable,var_cantidad				
-					from stock where id_producto=id_producto_datos and cantidad <>cantidad_datos and id_sucursal=id_sucursal_datos;
-				 SET fin=FALSE;
-				end if;
-         
-	  select id_stock into var_stock from stock where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
-      SET fin=FALSE;
-		if var_stock=0 then
-
-	insert into stock (cantidad,id_unidad_medida,precio,id_moneda,costo_contable,metodo_evaluacion,id_producto,id_sucursal)values
-						(cantidad_datos,get_unidad_medida(id_producto_datos),importe_datos,id_moneda_datos,importe_datos,claves('metodo_evaluacion'),id_producto_datos,id_sucursal_datos);
-
-						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
-						values (id_producto_datos,1,cantidad_datos,importe_datos,cantidad_datos,importe_datos,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
-			
-					ELSE
-					
-update stock set cantidad=var_cantidad,id_unidad_medida=get_unidad_medida(id_producto_datos),precio=importe_datos,
-						id_moneda=id_moneda_datos,costo_contable=precio_contable,metodo_evaluacion=claves('metodo_evaluacion') where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
-
-						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
-						values
-						(id_producto_datos,1,cantidad_datos,importe_datos,var_cantidad,precio_contable,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
-				
-					
-					end IF;		    
-       
-	END LOOP; 
-  CLOSE datos;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_compra_actualizar_stock` AFTER INSERT ON `entradas_compras` FOR EACH ROW BEGIN
+DECLARE last_insert integer;
+DECLARE precio_contable numeric;
+DECLARE var_cantidad numeric;
+DECLARE var_stock integer;
+DECLARE importe_datos integer;
+DECLARE cantidad_datos integer;
+DECLARE id_producto_datos integer;
+DECLARE id_sucursal_datos integer;
+DECLARE id_entrada_compra_datos integer;
+DECLARE id_usuario_recibio_datos integer;
+DECLARE id_deposito_datos integer;
+DECLARE id_moneda_datos integer;
+DECLARE fin Int DEFAULT FALSE;
+
+DECLARE datos CURSOR FOR 
+				SELECT e.id_entrada_compra,e.id_usuario_recibio, e.id_sucursal, e.id_deposito, d.cantidad, d.importe, d.id_moneda, d.id_producto
+				from entradas_compras e, entradas_compras_detalle d  
+				where e.id_entrada_compra = d.id_entrada_compra and e.estado=3 and e.id_entrada_compra = new.id_entrada_compra;
+             DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=TRUE;
+
+OPEN datos;
+get_runners: LOOP
+set id_entrada_compra_datos=0;
+set id_usuario_recibio_datos=0;
+set id_sucursal_datos=0;
+set id_deposito_datos=0;
+SET cantidad_datos=0;
+set importe_datos=0;
+set id_moneda_datos=0;
+set id_producto_datos=0;
+set var_stock =0;
+set precio_contable=0;
+set var_cantidad=0;
+  FETCH datos INTO id_entrada_compra_datos,id_usuario_recibio_datos,id_sucursal_datos,id_deposito_datos,cantidad_datos,importe_datos,id_moneda_datos,id_producto_datos;
+				 IF fin THEN
+       LEAVE get_runners;
+    END IF;   
+  
+		if claves('metodo_evaluacion')='CP' THEN					 
+					select 
+					((cantidad*costo_contable)+(importe_datos*cantidad_datos))/(cantidad+cantidad_datos) as promedio,(cantidad+cantidad_datos) 
+					into precio_contable,var_cantidad				
+					from stock where id_producto=id_producto_datos and cantidad <>cantidad_datos and id_sucursal=id_sucursal_datos;
+				 SET fin=FALSE;
+				end if;
+         
+	  select id_stock into var_stock from stock where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
+      SET fin=FALSE;
+		if var_stock=0 then
+
+	insert into stock (cantidad,id_unidad_medida,precio,id_moneda,costo_contable,metodo_evaluacion,id_producto,id_sucursal)values
+						(cantidad_datos,get_unidad_medida(id_producto_datos),importe_datos,id_moneda_datos,importe_datos,claves('metodo_evaluacion'),id_producto_datos,id_sucursal_datos);
+
+						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
+						values (id_producto_datos,1,cantidad_datos,importe_datos,cantidad_datos,importe_datos,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
+			
+					ELSE
+					
+update stock set cantidad=var_cantidad,id_unidad_medida=get_unidad_medida(id_producto_datos),precio=importe_datos,
+						id_moneda=id_moneda_datos,costo_contable=precio_contable,metodo_evaluacion=claves('metodo_evaluacion') where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
+
+						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
+						values
+						(id_producto_datos,1,cantidad_datos,importe_datos,var_cantidad,precio_contable,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
+				
+					
+					end IF;		    
+       
+	END LOOP; 
+  CLOSE datos;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -823,84 +823,84 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_entrada_facturas` AFTER UPDATE ON `entradas_compras` FOR EACH ROW begin
-DECLARE last_insert integer;
-DECLARE precio_contable numeric;
-DECLARE var_cantidad numeric;
-DECLARE var_stock integer;
-DECLARE importe_datos integer;
-DECLARE cantidad_datos integer;
-DECLARE id_producto_datos VARCHAR(150);
-DECLARE id_sucursal_datos integer;
-DECLARE id_entrada_compra_datos integer;
-DECLARE id_usuario_recibio_datos VARCHAR(150);
-DECLARE id_deposito_datos integer;
-DECLARE id_moneda_datos integer;
-DECLARE fin Int DEFAULT FALSE;
-
-
-
-DECLARE datos CURSOR FOR
-
-				SELECT e.id_entrada_compra,e.id_usuario_recibio, e.id_sucursal, e.id_deposito, d.cantidad, d.importe, d.id_moneda, d.id_producto
-				from entradas_compras e, entradas_compras_detalle d  
-				where e.id_entrada_compra = d.id_entrada_compra and e.estado=3 and e.id_entrada_compra = new.id_entrada_compra;
-             DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=TRUE;
-insert into debug VALUES('cp',new.id_entrada_compra); 
-
-OPEN datos;
-get_runners: LOOP
-set id_entrada_compra_datos=0;
-set id_usuario_recibio_datos='';
-set id_sucursal_datos=0;
-set id_deposito_datos=0;
-SET cantidad_datos=0;
-set importe_datos=0;
-set id_moneda_datos=0;
-set id_producto_datos='';
-set var_stock =0;
-set precio_contable=0;
-set var_cantidad=0;
-  FETCH datos INTO id_entrada_compra_datos,id_usuario_recibio_datos,id_sucursal_datos,id_deposito_datos,cantidad_datos,importe_datos,id_moneda_datos,id_producto_datos;
-				 IF fin THEN
-       LEAVE get_runners;
-    END IF;   
-  insert into debug VALUES('cp','END IF;');
-		if 'CP'='CP' THEN	
-		  insert into debug VALUES('cp entro','END IF;');				 
-					select 
-					((cantidad*costo_contable)+(importe_datos*cantidad_datos))/(cantidad+cantidad_datos) as promedio,(cantidad+cantidad_datos) 
-					into precio_contable,var_cantidad				
-					from stock where id_producto=id_producto_datos and cantidad <>cantidad_datos and id_sucursal=id_sucursal_datos;
-				 SET fin=FALSE;
-				end if;
-         
-	  select id_stock into var_stock from stock where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
-      SET fin=FALSE;
-		if var_stock=0 then
-
-	insert into stock (cantidad,id_unidad_medida,precio,id_moneda,costo_contable,metodo_evaluacion,id_producto,id_sucursal)values
-						(cantidad_datos,get_unidad_medida(id_producto_datos),importe_datos,id_moneda_datos,importe_datos,'CP',id_producto_datos,id_sucursal_datos);
-
-						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
-						values (id_producto_datos,1,cantidad_datos,importe_datos,cantidad_datos,importe_datos,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
-			
-					ELSE
-		 insert into debug VALUES('stock','else');			
-update stock set cantidad=var_cantidad,id_unidad_medida=get_unidad_medida(id_producto_datos),precio=importe_datos,
-						id_moneda=id_moneda_datos,costo_contable=precio_contable,metodo_evaluacion='CP' where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
-
-						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
-						values
-						(id_producto_datos,1,cantidad_datos,importe_datos,var_cantidad,precio_contable,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
-				
-					
-					end IF;		    
-       
-	END LOOP; 
-  CLOSE datos;
-
-    	
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_entrada_facturas` AFTER UPDATE ON `entradas_compras` FOR EACH ROW begin
+DECLARE last_insert integer;
+DECLARE precio_contable numeric;
+DECLARE var_cantidad numeric;
+DECLARE var_stock integer;
+DECLARE importe_datos integer;
+DECLARE cantidad_datos integer;
+DECLARE id_producto_datos VARCHAR(150);
+DECLARE id_sucursal_datos integer;
+DECLARE id_entrada_compra_datos integer;
+DECLARE id_usuario_recibio_datos VARCHAR(150);
+DECLARE id_deposito_datos integer;
+DECLARE id_moneda_datos integer;
+DECLARE fin Int DEFAULT FALSE;
+
+
+
+DECLARE datos CURSOR FOR
+
+				SELECT e.id_entrada_compra,e.id_usuario_recibio, e.id_sucursal, e.id_deposito, d.cantidad, d.importe, d.id_moneda, d.id_producto
+				from entradas_compras e, entradas_compras_detalle d  
+				where e.id_entrada_compra = d.id_entrada_compra and e.estado=3 and e.id_entrada_compra = new.id_entrada_compra;
+             DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=TRUE;
+insert into debug VALUES('cp',new.id_entrada_compra); 
+
+OPEN datos;
+get_runners: LOOP
+set id_entrada_compra_datos=0;
+set id_usuario_recibio_datos='';
+set id_sucursal_datos=0;
+set id_deposito_datos=0;
+SET cantidad_datos=0;
+set importe_datos=0;
+set id_moneda_datos=0;
+set id_producto_datos='';
+set var_stock =0;
+set precio_contable=0;
+set var_cantidad=0;
+  FETCH datos INTO id_entrada_compra_datos,id_usuario_recibio_datos,id_sucursal_datos,id_deposito_datos,cantidad_datos,importe_datos,id_moneda_datos,id_producto_datos;
+				 IF fin THEN
+       LEAVE get_runners;
+    END IF;   
+  insert into debug VALUES('cp','END IF;');
+		if 'CP'='CP' THEN	
+		  insert into debug VALUES('cp entro','END IF;');				 
+					select 
+					((cantidad*costo_contable)+(importe_datos*cantidad_datos))/(cantidad+cantidad_datos) as promedio,(cantidad+cantidad_datos) 
+					into precio_contable,var_cantidad				
+					from stock where id_producto=id_producto_datos and cantidad <>cantidad_datos and id_sucursal=id_sucursal_datos;
+				 SET fin=FALSE;
+				end if;
+         
+	  select id_stock into var_stock from stock where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
+      SET fin=FALSE;
+		if var_stock=0 then
+
+	insert into stock (cantidad,id_unidad_medida,precio,id_moneda,costo_contable,metodo_evaluacion,id_producto,id_sucursal)values
+						(cantidad_datos,get_unidad_medida(id_producto_datos),importe_datos,id_moneda_datos,importe_datos,'CP',id_producto_datos,id_sucursal_datos);
+
+						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
+						values (id_producto_datos,1,cantidad_datos,importe_datos,cantidad_datos,importe_datos,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
+			
+					ELSE
+		 insert into debug VALUES('stock','else');			
+update stock set cantidad=var_cantidad,id_unidad_medida=get_unidad_medida(id_producto_datos),precio=importe_datos,
+						id_moneda=id_moneda_datos,costo_contable=precio_contable,metodo_evaluacion='CP' where id_producto=id_producto_datos and id_sucursal=id_sucursal_datos;
+
+						insert into control_existencias (id_producto,transaccion,cantidad,costo_unitario,cantidad_resultante,costo_resultante,id_sucursal,id_moneda,id_usuario,id_factura,id_unidad_medida,id_deposito)
+						values
+						(id_producto_datos,1,cantidad_datos,importe_datos,var_cantidad,precio_contable,id_sucursal_datos,id_moneda_datos,id_usuario_recibio_datos,id_entrada_compra_datos,get_unidad_medida(id_producto_datos),id_deposito_datos);
+				
+					
+					end IF;		    
+       
+	END LOOP; 
+  CLOSE datos;
+
+    	
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -947,34 +947,34 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_compra_detalle_insert` BEFORE INSERT ON `entradas_compras_detalle` FOR EACH ROW begin
-
-DECLARE proveedor integer DEFAULT 0;
-DECLARE proveedor_hijo integer DEFAULT 0;
-
-insert into debug values(new.id_entrada_compra,new.id_producto);
-
-select id_proveedor 
-into proveedor
-from entradas_compras where id_entrada_compra=new.id_entrada_compra;
-insert into debug values(proveedor,'antes 1er if  proveedor');
-if proveedor > 0 then
-insert into debug values(proveedor,'entro if');
-	select id_proveedor 
-	into proveedor_hijo
-	from lista_precio_producto_proveedor where id_producto=new.id_producto and id_proveedor=proveedor;
-		insert into debug values(proveedor_hijo,'antes 2do  if  proveedor_hijo');
-        if proveedor_hijo = 0 then
-        insert into debug values(proveedor_hijo,'entro 2do  if  proveedor_hijo');
-			insert into lista_precio_producto_proveedor (precio,id_moneda,id_producto,id_proveedor)values(new.importe,new.id_moneda,new.id_producto,proveedor);
-		else
-                insert into debug values(proveedor_hijo,'entro 2do  if else  proveedor_hijo');
-
-			update lista_precio_producto_proveedor set precio=new.importe, id_moneda=new.id_moneda,fecha_hora=now() where id_proveedor=proveedor and id_producto=new.id_producto;
-		end if;
-
-end if;
-
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_compra_detalle_insert` BEFORE INSERT ON `entradas_compras_detalle` FOR EACH ROW begin
+
+DECLARE proveedor integer DEFAULT 0;
+DECLARE proveedor_hijo integer DEFAULT 0;
+
+insert into debug values(new.id_entrada_compra,new.id_producto);
+
+select id_proveedor 
+into proveedor
+from entradas_compras where id_entrada_compra=new.id_entrada_compra;
+insert into debug values(proveedor,'antes 1er if  proveedor');
+if proveedor > 0 then
+insert into debug values(proveedor,'entro if');
+	select id_proveedor 
+	into proveedor_hijo
+	from lista_precio_producto_proveedor where id_producto=new.id_producto and id_proveedor=proveedor;
+		insert into debug values(proveedor_hijo,'antes 2do  if  proveedor_hijo');
+        if proveedor_hijo = 0 then
+        insert into debug values(proveedor_hijo,'entro 2do  if  proveedor_hijo');
+			insert into lista_precio_producto_proveedor (precio,id_moneda,id_producto,id_proveedor)values(new.importe,new.id_moneda,new.id_producto,proveedor);
+		else
+                insert into debug values(proveedor_hijo,'entro 2do  if else  proveedor_hijo');
+
+			update lista_precio_producto_proveedor set precio=new.importe, id_moneda=new.id_moneda,fecha_hora=now() where id_proveedor=proveedor and id_producto=new.id_producto;
+		end if;
+
+end if;
+
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1387,23 +1387,23 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_lista_precio_proveedor_insert` BEFORE INSERT ON `lista_precio_producto_proveedor` FOR EACH ROW begin
-declare _producto VARCHAR(150);
-
-
-	BEGIN
-		SELECT id_producto
-		INTO _producto
-		FROM lista_precio_producto_proveedor
-		WHERE id_producto = new.id_producto;
-	end;
-	IF _producto IS NULL THEN
-		BEGIN
-			INSERT INTO lista_precio_producto( id_producto, precio, id_moneda, fecha_hora)
-			VALUES ( new.id_producto, new.precio, new.id_moneda, new.fecha_hora);		
-		END;
-	
-	END IF;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_lista_precio_proveedor_insert` BEFORE INSERT ON `lista_precio_producto_proveedor` FOR EACH ROW begin
+declare _producto VARCHAR(150);
+
+
+	BEGIN
+		SELECT id_producto
+		INTO _producto
+		FROM lista_precio_producto_proveedor
+		WHERE id_producto = new.id_producto;
+	end;
+	IF _producto IS NULL THEN
+		BEGIN
+			INSERT INTO lista_precio_producto( id_producto, precio, id_moneda, fecha_hora)
+			VALUES ( new.id_producto, new.precio, new.id_moneda, new.fecha_hora);		
+		END;
+	
+	END IF;
  end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1419,21 +1419,21 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_lista_precio_proveedor_update` BEFORE UPDATE ON `lista_precio_producto_proveedor` FOR EACH ROW BEGIN
-declare _producto VARCHAR(150)  DEFAULT '';
-
-		SELECT id_producto
-		INTO _producto
-		FROM lista_precio_producto_proveedor
-		WHERE id_producto = new.id_producto;
-
-	IF _producto IS NOT NULL THEN
-	
-			 update lista_precio_producto SET precio=NEW.precio, id_moneda=NEW.id_moneda,fecha_hora= NOW() WHERE id_producto=_producto;		
-	
-	
-	END IF;
-
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_insertar_lista_precio_proveedor_update` BEFORE UPDATE ON `lista_precio_producto_proveedor` FOR EACH ROW BEGIN
+declare _producto VARCHAR(150)  DEFAULT '';
+
+		SELECT id_producto
+		INTO _producto
+		FROM lista_precio_producto_proveedor
+		WHERE id_producto = new.id_producto;
+
+	IF _producto IS NOT NULL THEN
+	
+			 update lista_precio_producto SET precio=NEW.precio, id_moneda=NEW.id_moneda,fecha_hora= NOW() WHERE id_producto=_producto;		
+	
+	
+	END IF;
+
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1862,8 +1862,8 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_venta_actualizar_stock` BEFORE INSERT ON `stock` FOR EACH ROW BEGIN
-
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `despues_venta_actualizar_stock` BEFORE INSERT ON `stock` FOR EACH ROW BEGIN
+
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2387,18 +2387,18 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` FUNCTION `get_unidad_medida`(
-	`id_producto` VARCHAR(150)
+CREATE DEFINER=`root`@`localhost` FUNCTION `get_unidad_medida`(
+	`id_producto` VARCHAR(150)
 ) RETURNS int
     READS SQL DATA
-BEGIN
-
-DECLARE result INTEGER;
-
-SELECT um.id_unidad_medida INTO result FROM unidades_medidas um JOIN producto p ON um.id_unidad_medida=p.um WHERE p.id=id_producto;
-
-RETURN result;
-
+BEGIN
+
+DECLARE result INTEGER;
+
+SELECT um.id_unidad_medida INTO result FROM unidades_medidas um JOIN producto p ON um.id_unidad_medida=p.um WHERE p.id=id_producto;
+
+RETURN result;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2415,18 +2415,18 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` FUNCTION `precio_venta`(
-	`id_producto` VARCHAR(50)
+CREATE DEFINER=`root`@`localhost` FUNCTION `precio_venta`(
+	`id_producto` VARCHAR(50)
 ) RETURNS int
     READS SQL DATA
-BEGIN
-DECLARE result INTEGER;
-
-SELECT p.precioventa INTO result FROM producto p WHERE p.id=id_producto;
-
-RETURN result;
-
-
+BEGIN
+DECLARE result INTEGER;
+
+SELECT p.precioventa INTO result FROM producto p WHERE p.id=id_producto;
+
+RETURN result;
+
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;

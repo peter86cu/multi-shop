@@ -38,7 +38,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 	public static String success_pago_url;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
-	private boolean desarrollo = true;
+	private boolean desarrollo = false;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();

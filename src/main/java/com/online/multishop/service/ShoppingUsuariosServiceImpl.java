@@ -33,7 +33,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	public String hostSeguridad;
 
-	private boolean desarrollo = true;
+	private boolean desarrollo = false;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();
