@@ -11,7 +11,6 @@ function pagarOrden(){
   while(pos<=cantidadDir){
     if (document.getElementById(pos).checked)
     {
-    alert('checkbox1 esta seleccionado '+pos);
     idDireccion=pos;
     break;
     }
@@ -56,7 +55,9 @@ var datos = new FormData();
                   mensajeErrorPago(datos.resultado)
                   //salir()
 
-              }
+              }else{
+				  mensajeErrorPago402(datos.respuesta)
+			  }
 
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -108,7 +109,25 @@ function mensajeErrorPago(mensaje) {
       cancelButtonColor: '#d33',
   }).then((result) => {
       if (result.value) {
-          location.href = "index.html";
+          location.href = "index";
+      }
+      return false;
+  })
+}
+
+function mensajeErrorPago402(mensaje) {
+  Swal.fire({
+      text: mensaje,
+      //type: 'warning',
+      icon: "warning",
+      showCancelButton: false,
+      confirmButtonText: 'OK',
+      cancelButtonText: "No",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+  }).then((result) => {
+      if (result.value) {
+          return true;
       }
       return false;
   })
