@@ -1,13 +1,16 @@
 package com.online.multishop.vo;
 
+import java.util.List;
+
 import com.online.multishop.modelo.OrdenPago;
 
 public class ResponseOrdenPago {
 	
 	private int code;
 	private boolean status;
-	private OrdenPago[] lstOrdenPago;
+	private List<OrdenPago> lstOrdenPago;
 	private String resultado;
+	private ErrorState error;
 	public int getCode() {
 		return code;
 	}
@@ -28,11 +31,17 @@ public class ResponseOrdenPago {
 	public void setResultado(String resultado) {
 		this.resultado = resultado;
 	}
-	public OrdenPago[] getLstOrdenPago() {
+	public List<OrdenPago> getLstOrdenPago() {
 		return lstOrdenPago;
 	}
-	public void setLstOrdenPago(OrdenPago[] lstOrdenPago) {
+	public void setLstOrdenPago(List<OrdenPago> lstOrdenPago) {
 		this.lstOrdenPago = lstOrdenPago;
+	}
+	public ErrorState getError() {
+		return error;
+	}
+	public void setError(ErrorState error) {
+		this.error = error;
 	}
 	
 	

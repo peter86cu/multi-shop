@@ -4,26 +4,30 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.UUID;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.online.multishop.modelo.*;
 import com.online.multishop.vo.*;
+
+import com.ayalait.fecha.FormatearFechas;
+import com.ayalait.logguerclass.Notification;
+import com.ayalait.utils.MessageCodeImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.online.multishop.modelo.ResponseResultado;;
 
 @Service
@@ -38,6 +42,9 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 	public static String success_pago_url;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
+	@Autowired
+	RestTemplate restTemplate;
+	
 	private boolean desarrollo = false;
 
 	void cargarServer() throws IOException {
@@ -84,224 +91,238 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 
 	@Override
 	public ResponseValidarPago validarPagoOrden(RequestValidarPago request) throws JsonProcessingException {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseValidarPago responseAddUser = new ResponseValidarPago();
+		
+		
+		ResponseValidarPago responseOrder = new ResponseValidarPago();
+		
+		
+		 Notification noti= new Notification();
 
-		try {
+
 			try {
-				WebTarget webTarjet = cliente.target(dlocalGo);
-				Builder invoker = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-						"Bearer " + autentication);
-				ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
-				String json = ow.writeValueAsString(request);
-				Logger.getLogger(ValidarPagoServiceImpl.class.getName() + " - request - validarPagoOrden").log(Level.INFO,
-						json);
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("Authorization", "Bearer " + autentication);
+				HttpEntity<RequestValidarPago> requestEntity = new HttpEntity<>(request, headers);
+				noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				noti.setClass_id("multishop-APP");
+				noti.setRequest(ow.writeValueAsString(requestEntity));
+				noti.setAccion("consultarPago");	
+				noti.setId(UUID.randomUUID().toString());
+				
+				ResponseEntity<ValidarPagoResponse> response = restTemplate.exchange(this.dlocalGo , HttpMethod.GET,
+						requestEntity, ValidarPagoResponse.class);
 
-				response = (Response) invoker.post(Entity.entity(json, "application/json"), Response.class);
-				responseJson = (String) response.readEntity(String.class);
-
-				switch (response.getStatus()) {
-				case 200:
-					responseAddUser.setStatus(true);
-					responseAddUser.setCode(response.getStatus());
-					ValidarPagoResponse data = (new Gson()).fromJson(responseJson, ValidarPagoResponse.class);
-					Logger.getLogger(ValidarPagoServiceImpl.class.getName() + " - response - validarPagoOrden")
-							.log(Level.INFO, ow.writeValueAsString(data));
-					responseAddUser.setPagoValido(data);
-					return responseAddUser;
-				case 400:
-					responseAddUser.setStatus(false);
-					responseAddUser.setCode(response.getStatus());
-					responseAddUser.setRespuesta(responseJson);
-					return responseAddUser;
-
+				if (response.getStatusCodeValue() == 200) {
+					responseOrder.setStatus(true);
+					responseOrder.setPagoValido(response.getBody());
+					noti.setResponse(ow.writeValueAsString(responseOrder));			
 				}
-			} catch (JsonSyntaxException var15) {
-				responseAddUser.setCode(406);
-				responseAddUser.setStatus(false);
-				responseAddUser.setRespuesta(var15.getMessage());
-				return responseAddUser;
-			} catch (ProcessingException var16) {
-				responseAddUser.setCode(500);
-				responseAddUser.setStatus(false);
-				responseAddUser.setRespuesta(var16.getMessage());
-				return responseAddUser;
-			}
 
-			return responseAddUser;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
+			} catch (org.springframework.web.client.HttpServerErrorException e) {
+				JsonParser jsonParser = new JsonParser();
+				int in = e.getLocalizedMessage().indexOf("{");
+				int in2 = e.getLocalizedMessage().indexOf("}");
+				String cadena = e.getMessage().substring(in, in2+1);
+				JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+				responseOrder.setCode(myJson.get("code").getAsInt());
+				ErrorState data = new ErrorState();
+				data.setCode(myJson.get("code").getAsInt());
+				data.setMenssage(MessageCodeImpl.getMensajeAPIPago(myJson.get("code").getAsString() ));
+				responseOrder.setCode(data.getCode());
+				responseOrder.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseOrder));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 
-			if (cliente != null) {
-				cliente.close();
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			ResponseResultado result=guardarLog(noti);
+			if(!result.isStatus()) {
+				System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+			}
+			return responseOrder;
+			
+			
 
-		}
+		
 	}
 
 	@Override
 	public int obtenerNumeroOrden() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		int responseVal = 0;
+		Notification noti= new Notification();
+		int responseVal = 0;		
+		noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		noti.setClass_id("multishop-APP");
+		noti.setAccion("obtenerNumeroOrden");	
+		noti.setId(UUID.randomUUID().toString());
+		
+		ResponseEntity<Integer> response = restTemplate.exchange(this.hostStock + "/shopping/orden-number", HttpMethod.GET,
+				null, Integer.class);
 
-		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/orden-number");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			Logger.getLogger(ValidarPagoServiceImpl.class.getName() + " - request - obtenerNumeroOrden")
-					.log(Level.INFO, webTarjet.getUri().toString());
-
-			response = builder.get();
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				Logger.getLogger(ValidarPagoServiceImpl.class.getName()).log(Level.INFO, "response - obtenerNumeroOrden()",
-						responseJson);
-				int data = (new Gson()).fromJson(responseJson, Integer.class);
-
-				return data;
-			}
-
-			return responseVal;
-		} catch (JsonSyntaxException var15) {
-			return responseVal;
-		} catch (ProcessingException var20) {
-			return responseVal;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		if (response.getStatusCodeValue() == 200) {
+			return responseVal=response.getBody();			
 		}
+
+	 
+	noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+	ResponseResultado result= guardarLog(noti);
+	if(!result.isStatus()) {
+		System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+	}
+	return responseVal;
+	
+		
 	}
 
 	@Override
 	public ResponseResultado crearOrdenPago(OrdenPago orden) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseResultado responseOP = new ResponseResultado();
+		
+		ResponseResultado responseResult = new ResponseResultado();
+
+		Notification noti = new Notification();
 
 		try {
+			String url = this.hostStock + "/shopping/orden/crear";		
+			HttpHeaders headers = new HttpHeaders();
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			HttpEntity<OrdenPago> requestEntity = new HttpEntity<>(orden, headers);
+			noti.setRequest(ow.writeValueAsString(requestEntity));
+			noti.setAccion("imagenesProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class);
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
 			try {
-				WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/orden/crear");
-				Builder invoker = webTarjet.request(new String[] { "application/json" });
-
-				try {
-					String json = ow.writeValueAsString(orden);
-					Logger.getLogger(ValidarPagoServiceImpl.class.getName() + " - request - crearOrdenPago").log(Level.INFO,
-							json);
-
-					response = (Response) invoker.post(Entity.entity(json, "application/json"), Response.class);
-					responseJson = (String) response.readEntity(String.class);
-					Logger.getLogger(ValidarPagoServiceImpl.class.getName() + " - response - crearOrdenPago").log(Level.INFO,
-							ow.writeValueAsString(responseJson));
-				} catch (JsonProcessingException var17) {
-					Logger.getLogger(ValidarPagoServiceImpl.class.getName()).log(Level.SEVERE, (String) null, var17);
-				}
-
-				switch (response.getStatus()) {
-				case 200:
-					responseOP.setStatus(true);
-					responseOP.setCode(response.getStatus());
-					responseOP.setResultado(responseJson);
-					return responseOP;
-				case 400:
-					responseOP.setStatus(false);
-					responseOP.setCode(response.getStatus());
-					responseOP.setResultado(responseJson);
-					return responseOP;
-				case 404:
-					responseOP.setStatus(false);
-					responseOP.setCode(response.getStatus());
-					responseOP.setResultado(responseJson);
-					return responseOP;
-
-				}
-			} catch (JsonSyntaxException var15) {
-				responseOP.setCode(406);
-				responseOP.setStatus(false);
-				responseOP.setResultado(var15.getMessage());
-				return responseOP;
-			} catch (ProcessingException var16) {
-				responseOP.setCode(500);
-				responseOP.setStatus(false);
-				responseOP.setResultado(var16.getMessage());
-				return responseOP;
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			return responseOP;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
+		
+		
 	}
 
 	@Override
 	public ResponseOrdenPago obtenerOrdenPagoPorUsuarios(String idusuario) {
-
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-
+		
 		ResponseOrdenPago responseResult = new ResponseOrdenPago();
 
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/orden/list-user?id="+idusuario);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 400) {
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseResult.setResultado(response.readEntity(String.class));
+			String url = this.hostStock + "/shopping/orden/list-user?id="+idusuario;		
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest("id="+idusuario);			
+			noti.setAccion("obtenerOrdenPagoPorUsuarios");
+			noti.setId(UUID.randomUUID().toString());
+			
+			ResponseEntity<List<OrdenPago>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<OrdenPago>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setLstOrdenPago(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
+		
+
+	}
+
+	@Override
+	public ResponseResultado guardarLog(Notification noti) {
+		ResponseResultado responseResult = new ResponseResultado();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String url = ParametrosServiceImpl.logger + "/notification";
+
+			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
+					new Object[0]);
+
+			if (response.getStatusCodeValue() == 201) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
 				return responseResult;
 			}
 
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			OrdenPago[] data = (OrdenPago[]) (new Gson()).fromJson(responseJson, OrdenPago[].class);
-			responseResult.setLstOrdenPago(data);
-			return responseResult;
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
 
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
 			return responseResult;
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
 
 		}
+
+		return responseResult;
 
 	}
 

@@ -3,28 +3,28 @@ package com.online.multishop.service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.UUID;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.online.multishop.vo.*;
+
+import com.ayalait.fecha.FormatearFechas;
+import com.ayalait.logguerclass.Notification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.online.multishop.modelo.*;
 import com.online.multishop.modelo.ResponseResultado;
 
@@ -32,6 +32,10 @@ import com.online.multishop.modelo.ResponseResultado;
 public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	public String hostSeguridad;
+	@Autowired
+	RestTemplate restTemplate;
+
+	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	private boolean desarrollo = false;
 
@@ -69,337 +73,374 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 	}
 
 	@Override
-	public ResponseResultado crearUsuario(ShoppingUsuarios usuario, String token) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseResultado responseAddUser = new ResponseResultado();
-
+	public ResponseResultado guardarLog(Notification noti) {
+		ResponseResultado responseResult = new ResponseResultado();
 		try {
-			try {
-				WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/usuario/crear");
-				Builder invoker = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-						"Bearer " + token);
-				ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
+			HttpHeaders headers = new HttpHeaders();
+			String url = ParametrosServiceImpl.logger + "/notification";
 
-				try {
-					String json = ow.writeValueAsString(usuario);
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+ " - request - crearUsuario").log(Level.INFO, json);
+			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
+					new Object[0]);
 
-					response = (Response) invoker.post(Entity.entity(json, "application/json"), Response.class);
-					responseJson = (String) response.readEntity(String.class);
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName() +" - response - crearUsuario").log(Level.INFO, responseJson);
-
-				} catch (JsonProcessingException var17) {
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()).log(Level.SEVERE, (String) null,
-							var17);
-				}
-
-				switch (response.getStatus()) {
-				case 200:
-					responseAddUser.setStatus(true);
-					responseAddUser.setCode(response.getStatus());
-					responseAddUser.setResultado(responseJson);
-					return responseAddUser;
-				case 400:
-					responseAddUser.setStatus(false);
-					responseAddUser.setCode(response.getStatus());
-					responseAddUser.setResultado(responseJson);
-					return responseAddUser;
-
-				}
-			} catch (JsonSyntaxException var15) {
-				responseAddUser.setCode(406);
-				responseAddUser.setStatus(false);
-				responseAddUser.setResultado(var15.getMessage());
-				return responseAddUser;
-			} catch (ProcessingException var16) {
-				responseAddUser.setCode(500);
-				responseAddUser.setStatus(false);
-				responseAddUser.setResultado(var16.getMessage());
-				return responseAddUser;
+			if (response.getStatusCodeValue() == 201) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				return responseResult;
 			}
 
-			return responseAddUser;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
 
-			if (cliente != null) {
-				cliente.close();
-			}
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			return responseResult;
 
 		}
+
+		return responseResult;
+
+	}
+	
+	@Override
+	public ResponseResultado crearUsuario(ShoppingUsuarios usuario, String token) {
+		
+		ResponseResultado responseResult = new ResponseResultado();		
+		Notification noti= new Notification();
+
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/usuario/crear";
+			headers.set("Authorization ", "Bearer "+token);
+			HttpEntity<ShoppingUsuarios> requestEntity = new HttpEntity<>(usuario, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest(ow.writeValueAsString(requestEntity));
+			noti.setAccion("crearUsuario");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class, new Object[0]);
+
+			if (response.getStatusCodeValue() == 200) {
+				
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
 	}
 
 	@Override
 	public ResponseResultado obtenerToken(String mail, String pwd) {
-		Response response = null;
-		Client cliente = ClientBuilder.newBuilder().build();
+		
 		ResponseResultado responseResult = new ResponseResultado();
 
+		Notification noti= new Notification();
+
 		try {
-			String responseJson = "";
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/login/token?mail=" + mail + "&pwd=" + pwd);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - obtenerToken").log(Level.INFO,  webTarjet.getUri().toString());
+			String url = this.hostSeguridad + "/login/token?mail=" + mail + "&pwd=" + pwd;
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest("mail=" + mail + "&pwd=" + pwd);
+			noti.setAccion("crearUsuario");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response=null;
+			try {
+				response = restTemplate.exchange(url, HttpMethod.POST, null,
+						String.class, new Object[0]);
 
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.post(null);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - obtenerToken").log(Level.INFO,  webTarjet.getUri().toString());
-
-			if (response.getStatus() == 400 || response.getStatus() == 404) {
-				responseResult.setCode(response.getStatus());
-				responseResult.setStatus(false);
-				String errorW = (String) response.readEntity(String.class);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName() +" response - obtenerToken").log(Level.WARNING, errorW);
-				responseResult.setResultado(errorW);
+			} catch (Exception e) {
+				ErrorState data = new ErrorState();
+				data.setCode(500);
+				data.setMenssage(e.getMessage());
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				noti.setResponse(ow.writeValueAsString(responseResult) );
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result= guardarLog(noti);
+				if(!result.isStatus()) {
+					System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+				}
 				return responseResult;
 			}
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setCode(response.getStatus());
-			responseResult.setStatus(true);
-			responseResult.setResultado(responseJson);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName() +" - response - obtenerToken").log(Level.INFO,responseJson);
-			return responseResult;
-		} catch (JsonSyntaxException var16) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} catch (ProcessingException var17) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var17.getCause().getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+			
+			if (response.getStatusCodeValue() == 200) {
+				
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
 
 	}
 
 	public ResponseResultado validarToken(String token) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
+		
 		ResponseResultado responseResult = new ResponseResultado();
+		Notification noti= new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/login/validar");
-			Builder invoker = webTarjet.request(new String[] { null, "application/json" }).header("Authorization",
-					"Bearer " + token);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - validarToken").log(Level.INFO,  webTarjet.getUri().toString());
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/login/validar";
+			headers.set("Authorization ", "Bearer "+token);
+			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest(ow.writeValueAsString(requestEntity));
+			noti.setAccion("validarToken");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class, new Object[0]);
 
-			response = invoker.post(null);
-			if (response.getStatus() == 400) {
-				responseResult.setCode(response.getStatus());
-				responseResult.setStatus(false);
-				responseResult.setResultado((String) response.readEntity(String.class));
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - validarToken").log(Level.WARNING,  (String) response.readEntity(String.class));
-
-			} else {
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setCode(response.getStatus());
+			if (response.getStatusCodeValue() == 200) {
+				
 				responseResult.setStatus(true);
-				responseResult.setResultado(responseJson);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - responbse - obtenerToken").log(Level.INFO,  responseJson);
-
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			return responseResult;
-		} catch (JsonSyntaxException var9) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var9.getMessage());
-			return responseResult;
-		} catch (ProcessingException var20) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var20.getCause().getCause().getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
 	}
 
 	@Override
 	public ResponseUsuario obtenerDatosUsuarioLogin(String token, String mail) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseUsuario responseUser = new ResponseUsuario();
+		
+		ResponseUsuario responseResult = new ResponseUsuario();
+		Notification noti= new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail);
-			Builder builder = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-					"Bearer " + token);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - obtenerDatosUsuarioLogin").log(Level.INFO,  webTarjet.getUri().toString());
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail;
+			headers.set("Authorization", "Bearer "+token);
+			HttpEntity<String> requestEntity = new HttpEntity<>(mail, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest("mail=" + mail);
+			noti.setAccion("obtenerDatosUsuarioLogin");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<ShoppingUsuarios> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+					ShoppingUsuarios.class, new Object[0]);
 
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - obtenerDatosUsuarioLogin").log(Level.INFO,  responseJson);
-
-				responseUser.setStatus(true);
-				responseUser.setCode(response.getStatus());
-				ShoppingUsuarios data = (ShoppingUsuarios) (new Gson()).fromJson(responseJson, ShoppingUsuarios.class);
-				responseUser.setUser(data);
-
-				return responseUser;
+			if (response.getStatusCodeValue() == 200) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setUser(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			responseUser.setStatus(false);
-			responseUser.setCode(response.getStatus());
-			responseUser.setResultado((String) response.readEntity(String.class));
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - obtenerDatosUsuarioLogin").log(Level.WARNING,  (String) response.readEntity(String.class));
-
-			return responseUser;
-		} catch (JsonSyntaxException var15) {
-			responseUser.setCode(406);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var15.getMessage());
-			return responseUser;
-		} catch (ProcessingException var20) {
-			responseUser.setCode(500);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var20.getCause().getCause().getMessage());
-			return responseUser;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
 		}
 
+		return responseResult;
+		
+		
 	}
 
 	@Override
 	public ResponseUsuario buscarUsuarioPorId(String token, String id) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseUsuario responseUser = new ResponseUsuario();
+		
+		ResponseUsuario responseResult = new ResponseUsuario();
+
+		Notification noti= new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/usuario/id-usuario?id=" + id);
-			Builder builder = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-					"Bearer " + token);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - buscarUsuarioPorId").log(Level.INFO,  webTarjet.getUri().toString());
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/usuario/id-usuario?id=" + id;
+			headers.set("Authorization ", "Bearer "+token);
+			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest("id=" + id);
+			noti.setAccion("buscarUsuarioPorId");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class, new Object[0]);
 
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				responseUser.setStatus(true);
-				responseUser.setCode(response.getStatus());
-				ShoppingUsuarios data = (ShoppingUsuarios) (new Gson()).fromJson(responseJson, ShoppingUsuarios.class);
-				responseUser.setUser(data);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - buscarUsuarioPorId").log(Level.INFO, responseJson);
-
-				return responseUser;
-			}
-			responseUser.setStatus(false);
-			responseUser.setCode(response.getStatus());
-			responseJson = (String) response.readEntity(String.class);
-			responseUser.setResultado(responseJson);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - buscarUsuarioPorId").log(Level.WARNING,  (String) response.readEntity(String.class));
-
-			return responseUser;
-
-		} catch (JsonSyntaxException var15) {
-			responseUser.setCode(406);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var15.getMessage());
-			return responseUser;
-		} catch (ProcessingException var16) {
-			responseUser.setCode(500);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var16.getMessage());
-			return responseUser;
-		} finally {
-			if (response != null) {
-				response.close();
+			if (response.getStatusCodeValue() == 200) {
+				
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
 		}
 
+		return responseResult;
+		
+		
 	}
 
 	@Override
 	public ResponseUsuario validarUsuario(String mail, String token) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseUsuario responseUser = new ResponseUsuario();
+		
+		ResponseUsuario responseResult = new ResponseUsuario();
+		Notification noti= new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail);
-			Builder invoker = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-					"Bearer " + token);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - validarUsuario").log(Level.INFO,  webTarjet.getUri().toString());
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail;
+			headers.set("Authorization ", "Bearer "+token);
+			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest("mail=" + mail);
+			noti.setAccion("validarUsuario");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+					String.class, new Object[0]);
 
-			response = invoker.get();
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				responseUser.setStatus(true);
-				responseUser.setCode(response.getStatus());
-				ShoppingUsuarios data = (ShoppingUsuarios) (new Gson()).fromJson(responseJson, ShoppingUsuarios.class);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - validarUsuario").log(Level.INFO,  responseJson);
-
-				responseUser.setUser(data);
-				return responseUser;
+			if (response.getStatusCodeValue() == 200) {
+				
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			responseUser.setStatus(false);
-			responseUser.setCode(response.getStatus());
-			responseUser.setResultado((String) response.readEntity(String.class));
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - validarUsuario").log(Level.WARNING,  (String) response.readEntity(String.class));
-
-			return responseUser;
-		} catch (JsonSyntaxException var15) {
-			responseUser.setCode(406);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var15.getMessage());
-			return responseUser;
-		} catch (ProcessingException var16) {
-			responseUser.setCode(500);
-			responseUser.setStatus(false);
-			responseUser.setResultado(var16.getMessage());
-			return responseUser;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
+		
 
 	}
 
@@ -416,121 +457,134 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	@Override
 	public ResponseResultado guardarDireccionUsuario(DireccionUsuario dir, String token) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseResultado responseAddUser = new ResponseResultado();
+		
+		ResponseResultado responseResult = new ResponseResultado();
+		Notification noti= new Notification();
 
 		try {
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/direccion/crear";
+			headers.set("Authorization ", "Bearer "+token);
+			HttpEntity<DireccionUsuario> requestEntity = new HttpEntity<>(dir, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest(ow.writeValueAsString(requestEntity));
+			noti.setAccion("obtenerOrdenPagoId");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class, new Object[0]);
+
+			if (response.getStatusCodeValue() == 200) {
+				
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
 			try {
-				WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/direccion/crear");
-				Builder invoker = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-						"Bearer " + token);
-				ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
-
-				try {
-					String json = ow.writeValueAsString(dir);
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - rquest - guardarDireccionUsuario").log(Level.INFO,  json);
-
-					response = (Response) invoker.post(Entity.entity(json, "application/json"), Response.class);
-					responseJson = (String) response.readEntity(String.class);
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - guardarDireccionUsuario").log(Level.INFO,  responseJson);
-
-				} catch (JsonProcessingException var17) {
-					Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()).log(Level.SEVERE, (String) null,
-							var17);
-				}
-
-				switch (response.getStatus()) {
-				case 200:
-					responseAddUser.setStatus(true);
-					responseAddUser.setCode(response.getStatus());
-					responseAddUser.setResultado(responseJson);
-					return responseAddUser;
-				case 400:
-					responseAddUser.setStatus(false);
-					responseAddUser.setCode(response.getStatus());
-					responseAddUser.setResultado(responseJson);
-					return responseAddUser;
-
-				}
-			} catch (JsonSyntaxException var15) {
-				responseAddUser.setCode(406);
-				responseAddUser.setStatus(false);
-				responseAddUser.setResultado(var15.getMessage());
-				return responseAddUser;
-			} catch (ProcessingException var16) {
-				responseAddUser.setCode(500);
-				responseAddUser.setStatus(false);
-				responseAddUser.setResultado(var16.getMessage());
-				return responseAddUser;
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			return responseAddUser;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+
+		
 	}
 
 	@Override
 	public ResponseDirecciones recuperarDreccionUsuarioPorId(String idUsuario, String token) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
+		
 		ResponseDirecciones responseResult = new ResponseDirecciones();
+		Notification noti= new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostSeguridad + "/shopping/direccion/buscar?id=" + idUsuario);
-			Builder builder = webTarjet.request(new String[] { "application/json" }).header("Authorization",
-					"Bearer " + token);
-			Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - request - recuperarDreccionUsuarioPorId").log(Level.INFO,  webTarjet.getUri().toString());
-
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setStatus(true);
-				responseResult.setCode(response.getStatus());
-				DireccionUsuario[] data = (new Gson()).fromJson(responseJson, DireccionUsuario[].class);
-				responseResult.setDirecciones(data);
-				Logger.getLogger(ShoppingUsuariosServiceImpl.class.getName()+" - response - recuperarDreccionUsuarioPorId").log(Level.INFO,  responseJson);
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/direccion/buscar?id="+idUsuario;
+			headers.set("Authorization", "Bearer "+token);
+			//headers.set("id", idUsuario);
+			HttpEntity<String> requestEntity = new HttpEntity<>(idUsuario, headers);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("notification-API");
+			noti.setRequest("id=" + idUsuario);
+			noti.setAccion("obtenerOrdenPagoId");	
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<DireccionUsuario>> response=null;
+			try {
+			 response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+						new ParameterizedTypeReference<List<DireccionUsuario>>() {
+				});
+				
+			} catch (org.springframework.web.client.HttpClientErrorException e) {
+				ErrorState data = new ErrorState();
+				data.setCode(e.getStatusCode().value());
+				data.setMenssage(e.getMessage());
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseResult));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result= guardarLog(noti);
+				if(!result.isStatus()) {
+					System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+				}
 
 				return responseResult;
 			}
-			responseResult.setStatus(false);
-			responseResult.setCode(response.getStatus());
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setResultado(responseJson);
-			return responseResult;
+			
 
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+			if (response.getStatusCodeValue() == 200) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setDirecciones(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+				
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (Exception e) {
+			ErrorState data = new ErrorState();
+			data.setCode(500);
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result= guardarLog(noti);
+		if(!result.isStatus()) {
+			System.err.println(result.getError().getCode() +" "+ result.getError().getMenssage());
+		}
+
+		return responseResult;
+
+
+		
 	}
 
 	@Override

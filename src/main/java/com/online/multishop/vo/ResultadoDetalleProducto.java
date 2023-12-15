@@ -27,6 +27,7 @@ public class ResultadoDetalleProducto {
 	public void setMapa(Map<String, String> mapa) {
 		this.mapa = mapa;
 	}
+	
 
 	
 

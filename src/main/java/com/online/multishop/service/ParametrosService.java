@@ -5,6 +5,7 @@ package com.online.multishop.service;
 import java.util.List;
 
 import com.online.multishop.vo.*;
+import com.ayalait.logguerclass.Notification;
 import com.online.multishop.modelo.*;
 import com.online.multishop.modelo.ResponseResultado;
 
@@ -24,7 +25,7 @@ public interface ParametrosService {
     
     ResponseMonedas listarMonedas();
     
-    ProductoImagenes[] imagenesProducto(String id);
+    ResponseImagenesProducto imagenesProducto(String id);
     
     ResponseDetalleProducto detalleProducto(String id);
     
@@ -32,8 +33,10 @@ public interface ParametrosService {
     
     ResponseCart obtenerCarrito(String idCart,String idUsuario);
     
-    ResponseCart[] obtenerCarritoPorUsuario(String idUsuario);
+    ResponseCartUsuario obtenerCarritoPorUsuario(String idUsuario);
     
-    ShoppingHistoryEstado obtenerEstadoCarrito(int id);
+    ResponseHistoryEstadoCart obtenerEstadoCarrito(int id);
+    
+    ResponseResultado guardarLog(Notification noti);
 
 }

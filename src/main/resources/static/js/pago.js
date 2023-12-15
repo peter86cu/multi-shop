@@ -56,7 +56,7 @@ var datos = new FormData();
                   //salir()
 
               }else{
-				  mensajeErrorPago402(datos.respuesta)
+				  mensajeErrorPago402(datos.error.menssage)
 			  }
 
             }

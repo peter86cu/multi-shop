@@ -17,6 +17,7 @@ public class ResponseUsuario {
     private int code;
     private ShoppingUsuarios user;
     private String resultado;
+    private ErrorState error;
 
 
 
@@ -52,6 +53,14 @@ public class ResponseUsuario {
 
 	public void setUser(ShoppingUsuarios user) {
 		this.user = user;
+	}
+
+	public ErrorState getError() {
+		return error;
+	}
+
+	public void setError(ErrorState error) {
+		this.error = error;
 	}
 
    

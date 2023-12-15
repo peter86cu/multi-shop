@@ -1,8 +1,10 @@
 package com.online.multishop.service;
 
 
+
 import org.springframework.web.client.RestTemplate;
 
+import com.ayalait.logguerclass.Notification;
 import com.online.multishop.modelo.*;
 import com.online.multishop.modelo.ResponseResultado;
 import com.online.multishop.vo.*;
@@ -20,6 +22,8 @@ public interface ShoppingUsuariosService {
 	ResponseResultado guardarDireccionUsuario(DireccionUsuario dir,String token);
 	ResponseDirecciones recuperarDreccionUsuarioPorId(String idUsuario, String token);
 	ResponseResultado eliminarDreccionUsuarioPorId(int id, String token);
+	
+	ResponseResultado guardarLog(Notification noti);
 	
 	
 

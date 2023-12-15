@@ -42,7 +42,7 @@ function login() {
             success: function (respuesta) {
                 var response = JSON.stringify(respuesta, null, "\t");
                 var datos = JSON.parse(response);
-                if (datos.code == 200) {
+                if (datos.status) {
                     //sessionStorage.setItem("user", "Invitado");
                     sessionStorage.setItem("nameUser", datos.user.name);
                     sessionStorage.setItem("userId", datos.user.id);
@@ -53,7 +53,13 @@ function login() {
                     //$('.loader_bg').fadeToggle();
                     guardarCarritoConLogin(datos.user.id);
                     termino = true;
-                } else {
+                }else if(datos.code==500){
+					  Swal.fire({
+                        icon: "error",
+                        text: datos.error.menssage,
+                    });
+                    
+				} else {
                     
                     Swal.fire({
                         icon: "error",
@@ -81,7 +87,7 @@ function salir() {
         success: function (respuesta) {
             var response = JSON.stringify(respuesta, null, "\t");
             var datos = JSON.parse(response);
-            if (datos.code == 200) {
+            if (datos.status == 200) {
                 sessionStorage.setItem("nameUser", "Invitado");
                 // sessionStorage.setItem("sessionId",uuid.v1());
                 sessionStorage.removeItem("token");
@@ -90,7 +96,7 @@ function salir() {
 
                 window.location.href = "index";
             } else if (
-                datos.code == 201 &&
+                datos.status == 201 &&
                 sessionStorage.getItem("token") != datos.resultado
             ) {
                 sessionStorage.setItem("nameUser", "Invitado");

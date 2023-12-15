@@ -8,6 +8,7 @@ import com.online.multishop.modelo.*;
 public class ResponseApi {
 	
 	private int code;
+	private boolean status;
 	private String resultado;
 	private List<Categoria> categorias;
 	private List<TipoProducto> tipoProducto;
@@ -18,13 +19,13 @@ public class ResponseApi {
 	private ResultadoDetalleProducto detalle;
 	private List<ProductoImagenes> imagenes;
 	private List<Categoria> todasCategorias;
-	private ResponseCart carrito;
+	private CarritoDetalle carrito;
 	private List<DireccionUsuario> direcciones;
 	private ShoppingUsuarios user;
 	private ValidarPagoResponse pagoValidado;
 	private String cartIDSession;
 	private List<OrdenesPagoUsuarios> comprasUsuarios;
-	
+	private ErrorState error;
 	
 	public int getCode() {
 		return code;
@@ -64,22 +65,17 @@ public class ResponseApi {
 		this.setTodasCategorias(null);
 		this.setCategorias(null);
 		this.setTipoProducto(null);
-		this.setCarrito(null);
 		this.setDetalle(null);
 		this.setDirecciones(null);
 		this.setImagenes(null);
 		this.setProductos(null);
 		this.setUser(null);
 		this.setComprasUsuarios(null);
+		this.setCarrito(null);
 		
 		
 	}
-	public ResponseCart getCarrito() {
-		return carrito;
-	}
-	public void setCarrito(ResponseCart carrito) {
-		this.carrito = carrito;
-	}
+	
 	
 	public ShoppingUsuarios getUser() {
 		return user;
@@ -147,6 +143,24 @@ public class ResponseApi {
 	}
 	public void setComprasUsuarios(List<OrdenesPagoUsuarios> comprasUsuarios) {
 		this.comprasUsuarios = comprasUsuarios;
+	}
+	public CarritoDetalle getCarrito() {
+		return carrito;
+	}
+	public void setCarrito(CarritoDetalle carrito) {
+		this.carrito = carrito;
+	}
+	public boolean isStatus() {
+		return status;
+	}
+	public void setStatus(boolean status) {
+		this.status = status;
+	}
+	public ErrorState getError() {
+		return error;
+	}
+	public void setError(ErrorState error) {
+		this.error = error;
 	}
 	
 	

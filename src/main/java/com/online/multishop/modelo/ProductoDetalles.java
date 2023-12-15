@@ -33,6 +33,7 @@ public class ProductoDetalles  {
 		this.idproducto = idproducto;
 	}
 
+
 	public String getDescripcion() {
 		return descripcion;
 	}

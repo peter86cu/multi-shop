@@ -1,48 +1,49 @@
 package com.online.multishop.service;
 
-
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
+import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.UUID;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.online.multishop.modelo.*;
 import com.online.multishop.modelo.ResponseResultado;
 import com.online.multishop.vo.*;
+import com.ayalait.fecha.FormatearFechas;
+import com.ayalait.logguerclass.Notification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 
 @Service
 public class ParametrosServiceImpl implements ParametrosService {
 
-	
-	
 	public static String rutaDowloadProducto;
-	private  String hostStock;	
-	private boolean desarrollo=false;
-	
-	
+	private String hostStock;
+	public static String logger;
+	private boolean desarrollo = false;
+	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
+
+	@Autowired
+	RestTemplate restTemplate;
+
 	void cargarServer() throws IOException {
 		Properties p = new Properties();
 
@@ -55,8 +56,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 				p.load(propertiesStream);
 				propertiesStream.close();
 				this.hostStock = p.getProperty("server.stock");
+				this.logger = p.getProperty("server.logger");
 				this.rutaDowloadProducto = p.getProperty("server.uploaderProductos");
-				
+
 			}
 		} catch (FileNotFoundException var3) {
 			System.err.println(var3.getMessage());
@@ -66,10 +68,11 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 	public ParametrosServiceImpl() {
 		try {
-			if(desarrollo){
+			if (desarrollo) {
 				hostStock = "http://localhost:8082";
-				rutaDowloadProducto="C:\\xampp\\htdocs\\multishop\\img\\";
-			}else{
+				logger = "http://localhost:8086";
+				rutaDowloadProducto = "C:\\xampp\\htdocs\\multishop\\img\\";
+			} else {
 				cargarServer();
 			}
 		} catch (IOException var2) {
@@ -77,610 +80,748 @@ public class ParametrosServiceImpl implements ParametrosService {
 		}
 
 	}
-	
+
+	@Override
+	public ResponseResultado guardarLog(Notification noti) {
+
+		ResponseResultado responseResult = new ResponseResultado();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.logger + "/notification";
+
+			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
+					new Object[0]);
+
+			if (response.getStatusCodeValue() == 201) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				return responseResult;
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			return responseResult;
+
+		}
+
+		return responseResult;
+
+	}
+
 	@Cacheable(cacheNames = "tipoProducto")
 	@Override
 	public ResponseTipoProducto listadoTipoProducto() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
 
 		ResponseTipoProducto responseResult = new ResponseTipoProducto();
-		
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/parametros/tipoproducto");
 
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			Logger.getLogger(ParametrosServiceImpl.class.getName()+" - request - listadoTipoProducto").log(Level.INFO,  webTarjet.getUri().toString());
+			String url = this.hostStock + "/parametros/tipoproducto";
 
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			System.out.println("Lllego bien: "+ response.getStatusInfo());
-			if (response.getStatus() == 200) {
-				responseJson = (String) response.readEntity(String.class);
-				Logger.getLogger(ParametrosServiceImpl.class.getName()+" - request - listadoTipoProducto").log(Level.WARNING,  responseJson);
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setAccion("listadoTipoProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<TipoProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<TipoProducto>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
 
 				responseResult.setStatus(true);
-				responseResult.setCode(response.getStatus());
-				TipoProducto[] data = (TipoProducto[]) (new Gson()).fromJson(responseJson, TipoProducto[].class);
-				responseResult.setTipoProductos(data);
-				System.out.println("Lllego bien: "+ responseJson);
+				responseResult.setTipoProductos(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
 
-				return responseResult;
-			}
-			System.out.println("Lllego mal "+ response.getStatus());
-			responseResult.setStatus(false);
-			responseResult.setCode(response.getStatus());
-			responseResult.setResultado(response.readEntity(String.class));
-			Logger.getLogger(ParametrosServiceImpl.class.getName()+" - request - listadoTipoProducto").log(Level.WARNING,  responseResult.getResultado());
-
-			return responseResult;
-			
-
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			System.out.println(var15.getMessage());
-			return responseResult;
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			System.out.println(var16.getMessage());
-
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+
 	}
-	
+
 	@Cacheable(cacheNames = "categorias")
 	@Override
 	public ResponseCategorias listarCategorias() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
+
 		ResponseCategorias responseResult = new ResponseCategorias();
+		Notification noti = new Notification();
 
-		ResponseCategorias var11;
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/parametros/categoria");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			
-				if (response.getStatus() == 200) {
-					responseJson = (String) response.readEntity(String.class);
-					responseResult.setStatus(true);
-					responseResult.setCode(response.getStatus());
-					Categoria[] data = (Categoria[]) (new Gson()).fromJson(responseJson, Categoria[].class);
-					responseResult.setCategorias(data);
-					return responseResult;
-				}
 
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseResult.setResultado(response.readEntity(String.class));
-				return responseResult;
-			
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			var11 = responseResult;
-			return var11;
-		} finally {
-			if (response != null) {
-				response.close();
+			String url = this.hostStock + "/parametros/categoria";
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+
+			noti.setAccion("listarCategorias");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<Categoria>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<Categoria>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setCategorias(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
 	}
-	
-	@Cacheable(cacheNames="marcas")
+
+	@Cacheable(cacheNames = "marcas")
 	@Override
 	public ResponseListaMarcasProducto listadoMarcasProducto() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
 
 		ResponseListaMarcasProducto responseResult = new ResponseListaMarcasProducto();
 
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/parametros/marcas");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 400 || response.getStatus() == 406 || response.getStatus() == 404) {
 
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setResultado(responseJson);
-				return responseResult;
+			String url = this.hostStock + "/parametros/marcas";
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+
+			noti.setAccion("listadoMarcasProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<MarcaProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<MarcaProducto>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setMarcas(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			MarcaProducto[] data =  new Gson().fromJson(responseJson, MarcaProducto[].class);
-			responseResult.setMarcas(data);
-			return responseResult;
-
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
-
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
 		}
 
+		return responseResult;
+
 	}
-	
-	@Cacheable(cacheNames="modelos")
+
+	@Cacheable(cacheNames = "modelos")
 	@Override
 	public ResponseListaModeloProducto listadoModelosProducto() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
 
 		ResponseListaModeloProducto responseResult = new ResponseListaModeloProducto();
 
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/parametros/modelos");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 400 || response.getStatus() == 406 || response.getStatus() == 404) {
 
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setResultado(responseJson);
-				return responseResult;
+			String url = this.hostStock + "/parametros/modelos";
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+
+			noti.setAccion("listadoModelosProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<ModeloProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<ModeloProducto>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setModelo(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			ModeloProducto[] data =  new Gson().fromJson(responseJson, ModeloProducto[].class);
-			responseResult.setModelo(data);
-			return responseResult;
-
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
-
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+
 	}
 
 	@Override
 	public ResponseListaProductos consultarListaProductos() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		
+
 		ResponseListaProductos responseResult = new ResponseListaProductos();
+		Notification noti = new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/productos/lista");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 400 || response.getStatus() == 406) {
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setResultado(responseJson);
-				return responseResult;
-			}
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			Producto[] data = (Producto[]) (new Gson()).fromJson(responseJson, Producto[].class);
-			responseResult.setProductos(data);
-			return responseResult;
 
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
+			String url = this.hostStock + "/productos/lista";
 
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+
+			noti.setAccion("consultarListaProductos");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<Producto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<Producto>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setProductos(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+
 	}
+
 	@Override
 	public ResponseMonedas listarMonedas() {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-
+		
 		ResponseMonedas responseResult = new ResponseMonedas();
 
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/parametros/monedas");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			if (response.getStatus() == 400 || response.getStatus() == 406 || response.getStatus() == 404) {
 
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setResultado(responseJson);
-				return responseResult;
+			String url = this.hostStock + "/parametros/monedas";
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+
+			noti.setAccion("listarMonedas");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<Moneda>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<Moneda>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setMonedas(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			Moneda[] data = (Moneda[]) (new Gson()).fromJson(responseJson, Moneda[].class);
-			responseResult.setMonedas(data);
-			return responseResult;
-
-		} catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
-
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		} finally {
-			if (response != null) {
-				response.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
+		
 
 	}
 
 	@Override
-	public ProductoImagenes[] imagenesProducto(String id) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ProductoImagenes result[]= new ProductoImagenes[0];
+	public ResponseImagenesProducto imagenesProducto(String id) {
+		
+		ResponseImagenesProducto responseResult = new ResponseImagenesProducto();
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/productos/imagenes?id="+id);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
+			String url = this.hostStock + "/productos/imagenes?id=" + id;
 			
-				if (response.getStatus() == 200) {
-					responseJson = (String) response.readEntity(String.class);
-					ProductoImagenes[] data = (ProductoImagenes[]) (new Gson()).fromJson(responseJson, ProductoImagenes[].class);
-				
-					return data;
-				}
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest(id);
+			noti.setAccion("imagenesProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<ProductoImagenes>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<ProductoImagenes>>() {
+					});
 
-				
-				return result;
-			
-		} catch (JsonSyntaxException var15) {
-			
-			return result;
-		} catch (ProcessingException var16) {
-			
-			return result;
-		} finally {
-			if (response != null) {
-				response.close();
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setImagenProducto(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;		
+		
 	}
 
 	@Override
 	public ResponseDetalleProducto detalleProducto(String id) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseDetalleProducto responseResult=new ResponseDetalleProducto();
+		
+		ResponseDetalleProducto responseResult = new ResponseDetalleProducto();
+		
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/productos/detalle?id="+id);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
+			String url = this.hostStock + "/productos/detalle?id=" + id;		
 			
-			if (response.getStatus() == 400 || response.getStatus() == 406 || response.getStatus() == 404) {
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest(id);
+			noti.setAccion("detalleProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<ProductoDetalles> response=null;
+			try {
+				 response = restTemplate.exchange(url, HttpMethod.GET, null,
+						ProductoDetalles.class);
+			} catch (org.springframework.web.client.HttpServerErrorException e) {
+				ErrorState data = new ErrorState();
+				data.setCode(e.getStatusCode().value());
+				data.setMenssage(e.getMessage());
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseResult));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result = guardarLog(noti);
+				if (!result.isStatus()) {
+					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+				}
 
-				responseResult.setStatus(false);
-				responseResult.setCode(response.getStatus());
-				responseJson = (String) response.readEntity(String.class);
-				responseResult.setResultado(responseJson);
-				return responseResult;
+				return responseResult;	
+			}catch (org.springframework.web.client.HttpClientErrorException e) {
+				ErrorState data = new ErrorState();
+				data.setCode(e.getStatusCode().value());
+				data.setMenssage(e.getMessage());
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseResult));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result = guardarLog(noti);
+				if (!result.isStatus()) {
+					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+				}
+
+				return responseResult;	
 			}
-
-			responseJson = (String) response.readEntity(String.class);
-			responseResult.setStatus(true);
-			responseResult.setCode(response.getStatus());
-			ProductoDetalles data =  new Gson().fromJson(responseJson, ProductoDetalles.class);
-			responseResult.setDetalle(data);
-			return responseResult;
-				
 			
-		}catch (JsonSyntaxException var15) {
-			responseResult.setCode(406);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var15.getMessage());
-			return responseResult;
+			
 
-		} catch (ProcessingException var16) {
-			responseResult.setCode(500);
-			responseResult.setStatus(false);
-			responseResult.setResultado(var16.getMessage());
-			return responseResult;
-		}   finally {
-			if (response != null) {
-				response.close();
+			if (response.getStatusCodeValue() == 200) {				
+				responseResult.setStatus(true);
+				responseResult.setDetalle(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (Exception e) {
+			ErrorState data = new ErrorState();
+			data.setCode(500);
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;	
+		
+		
+		
 	}
 
 	@Override
 	public ResponseResultado guardarCarrito(RequestAddCart request) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseResultado responseAddProduct = new ResponseResultado();
+		
+		ResponseResultado responseResult = new ResponseResultado();
+		
+		Notification noti = new Notification();
 
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/guardar-cart");
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
-			builder.accept(new String[] { "application/json" });
+			String url = this.hostStock + "/shopping/guardar-cart";		
+			HttpHeaders headers = new HttpHeaders();
 
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			HttpEntity<RequestAddCart> requestEntity = new HttpEntity<>(request, headers);
+
+			noti.setAccion("imagenesProducto");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+					String.class);
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
 			try {
-				String json = ow.writeValueAsString(request);
-				response = (Response) builder.post(Entity.entity(json, "application/json"), Response.class);
-				responseJson = (String) response.readEntity(String.class);
-			} catch (JsonProcessingException var16) {
-				Logger.getLogger(ParametrosServiceImpl.class.getName()).log(Level.SEVERE, (String) null, var16);
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
-			switch (response.getStatus()) {
-			case 200:
-				responseAddProduct.setStatus(true);
-				responseAddProduct.setCode(response.getStatus());
-				responseAddProduct.setResultado(responseJson);
-				return responseAddProduct;
-			case 400:
-				responseAddProduct.setStatus(false);
-				responseAddProduct.setCode(response.getStatus());
-				responseAddProduct.setResultado(responseJson);
-				return responseAddProduct;
-			case 406:
-				responseAddProduct.setStatus(false);
-				responseAddProduct.setCode(response.getStatus());
-				responseAddProduct.setResultado(responseJson);
-				return responseAddProduct;
-
-			}
-		} catch (JsonSyntaxException var15) {
-			responseAddProduct.setCode(406);
-			responseAddProduct.setStatus(false);
-			responseAddProduct.setResultado(var15.getMessage());
-			return responseAddProduct;
-		} catch (ProcessingException var16) {
-			responseAddProduct.setCode(500);
-			responseAddProduct.setStatus(false);
-			responseAddProduct.setResultado(var16.getMessage());
-			return responseAddProduct;
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-
-			if (cliente != null) {
-				cliente.close();
-			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
 		}
 
-		return responseAddProduct;
+		return responseResult;
+
+		
 	}
 
 	@Override
-	public ResponseCart obtenerCarrito(String idCart,String idUsuario) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseCart result= new ResponseCart();
+	public ResponseCart obtenerCarrito(String idCart, String idUsuario) {
+		
+		ResponseCart responseResult = new ResponseCart();	
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/obtener-cart?idcart="+idCart+"&idusuario="+idUsuario);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
-			
-				if (response.getStatus() == 200) {
-					responseJson = (String) response.readEntity(String.class);
-					ResponseCart data = (ResponseCart) (new Gson()).fromJson(responseJson, ResponseCart.class);
-				
-					return data;
-				}
+			String url = this.hostStock + "/shopping/obtener-cart?idcart=" + idCart + "&idusuario=" + idUsuario;		
 
-				
-				return result;
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest("idcart=" + idCart + "&idusuario=" + idUsuario);
 			
-		} catch (JsonSyntaxException var15) {
-			
-			return result;
-		} catch (ProcessingException var16) {
-			
-			return result;
-		} finally {
-			if (response != null) {
-				response.close();
+			noti.setAccion("obtenerCarrito");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<CarritoDetalle> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					CarritoDetalle.class);
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setCartDetalle(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;
+		
+		
+		
 	}
 
 	@Override
-	public ResponseCart[] obtenerCarritoPorUsuario(String idUsuario) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ResponseCart result[]= new ResponseCart[0];
+	public ResponseCartUsuario obtenerCarritoPorUsuario(String idUsuario) {
+		
+		ResponseCartUsuario responseResult = new ResponseCartUsuario();
+		
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/obtener-cart-usuario?idusuario="+idUsuario);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
+			String url = this.hostStock + "/shopping/obtener-cart-usuario?idusuario=" + idUsuario;		
+
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest("idusuario=" + idUsuario);
 			
-				if (response.getStatus() == 200) {
-					responseJson = (String) response.readEntity(String.class);					
-					ResponseCart[] data = (new Gson()).fromJson(responseJson, ResponseCart[].class);
-				
-					return data;
+			noti.setAccion("obtenerCarritoPorUsuario");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<List<CarritoDetalle>> response=null;
+			try {
+				 response = restTemplate.exchange(url, HttpMethod.GET, null,
+						new ParameterizedTypeReference<List<CarritoDetalle>>() {
+						});
+			} catch (org.springframework.web.client.HttpServerErrorException e) {
+				ErrorState data = new ErrorState();
+				data.setCode(e.getStatusCode().value());
+				data.setMenssage(e.getMessage());
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseResult));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result = guardarLog(noti);
+				if (!result.isStatus()) {
+					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
 				}
 
-				
-				return result;
+				return responseResult;
+			}
 			
-		} catch (JsonSyntaxException var15) {
 			
-			return result;
-		} catch (ProcessingException var16) {
-			
-			return result;
-		} finally {
-			if (response != null) {
-				response.close();
+
+			if (response.getStatusCodeValue() == 200) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setCartDetalle(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (Exception e) {
+			ErrorState data = new ErrorState();
+			data.setCode(500);
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} 
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
 		}
+
+		return responseResult;
+		
+		
+		
 	}
 
 	@Override
-	public ShoppingHistoryEstado obtenerEstadoCarrito(int id) {
-		Response response = null;
-		Client cliente = ClientBuilder.newClient();
-		String responseJson = "";
-		ShoppingHistoryEstado result= new ShoppingHistoryEstado();
+	public ResponseHistoryEstadoCart obtenerEstadoCarrito(int id) {
+		
+		ResponseHistoryEstadoCart responseResult = new ResponseHistoryEstadoCart();		
+		Notification noti = new Notification();
+
 		try {
-			WebTarget webTarjet = cliente.target(this.hostStock + "/shopping/obtener-estado-cart?id="+id);
-			Builder builder = webTarjet.request(new String[] { "application/json" });
-			builder.accept(new String[] { "application/json" });
-			response = builder.get();
+			String url = this.hostStock + "/shopping/obtener-estado-cart?id=" + id;		
 			
-				if (response.getStatus() == 200) {
-					responseJson = (String) response.readEntity(String.class);					
-					ShoppingHistoryEstado data = (new Gson()).fromJson(responseJson, ShoppingHistoryEstado.class);
-				
-					return data;
-				}
+			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+			noti.setClass_id("multishop-APP");
+			noti.setRequest("id=" + id);
+			noti.setAccion("obtenerEstadoCarrito");
+			noti.setId(UUID.randomUUID().toString());
+			ResponseEntity<ShoppingHistoryEstado> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					ShoppingHistoryEstado.class);
 
-				
-				return result;
-			
-		} catch (JsonSyntaxException var15) {
-			
-			return result;
-		} catch (ProcessingException var16) {
-			
-			return result;
-		} finally {
-			if (response != null) {
-				response.close();
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setEstado(response.getBody());
+				noti.setResponse(ow.writeValueAsString(responseResult));
+
 			}
 
-			if (cliente != null) {
-				cliente.close();
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			try {
+				noti.setResponse(ow.writeValueAsString(responseResult));
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		ResponseResultado result = guardarLog(noti);
+		if (!result.isStatus()) {
+			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+		}
+
+		return responseResult;	
+		
+		
+		
 	}
-
-	
-	
-
-	
 
 }

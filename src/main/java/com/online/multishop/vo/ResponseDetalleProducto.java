@@ -8,6 +8,7 @@ public class ResponseDetalleProducto {
     private int code;
     private ProductoDetalles detalle;
     private String resultado;
+    private ErrorState error;
 
    
 
@@ -43,6 +44,14 @@ public class ResponseDetalleProducto {
 
 	public void setResultado(String resultado) {
 		this.resultado = resultado;
+	}
+
+	public ErrorState getError() {
+		return error;
+	}
+
+	public void setError(ErrorState error) {
+		this.error = error;
 	}
 
 	

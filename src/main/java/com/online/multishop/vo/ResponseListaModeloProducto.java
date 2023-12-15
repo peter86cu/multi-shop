@@ -1,13 +1,16 @@
 package com.online.multishop.vo;
 
+import java.util.List;
+
 import com.online.multishop.modelo.ModeloProducto;
 
 public class ResponseListaModeloProducto {
 	
 	private boolean status;
     private int code;
-    private ModeloProducto[] modelo;   
+    private List<ModeloProducto> modelo;   
     private String resultado;
+    private ErrorState error;
 
    
 
@@ -29,11 +32,12 @@ public class ResponseListaModeloProducto {
 	
 	
 
-	public ModeloProducto[] getModelo() {
+
+	public List<ModeloProducto> getModelo() {
 		return modelo;
 	}
 
-	public void setModelo(ModeloProducto[] modelo) {
+	public void setModelo(List<ModeloProducto> modelo) {
 		this.modelo = modelo;
 	}
 
@@ -43,6 +47,14 @@ public class ResponseListaModeloProducto {
 
 	public void setResultado(String resultado) {
 		this.resultado = resultado;
+	}
+
+	public ErrorState getError() {
+		return error;
+	}
+
+	public void setError(ErrorState error) {
+		this.error = error;
 	}
 
 

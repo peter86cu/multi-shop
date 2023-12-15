@@ -1,13 +1,16 @@
 package com.online.multishop.vo;
 
+import java.util.List;
+
 import com.online.multishop.modelo.Moneda;
 
 public class ResponseMonedas {
 
 	private boolean status;
 	private int code;
-	private Moneda[] monedas;
+	private List<Moneda> monedas;
 	private String resultado;
+	private ErrorState error;
 
 	public boolean isStatus() {
 		return status;
@@ -25,13 +28,7 @@ public class ResponseMonedas {
 		this.code = code;
 	}
 
-	public Moneda[] getMonedas() {
-		return monedas;
-	}
-
-	public void setMonedas(Moneda[] monedas) {
-		this.monedas = monedas;
-	}
+	
 
 	public String getResultado() {
 		return resultado;
@@ -39,6 +36,22 @@ public class ResponseMonedas {
 
 	public void setResultado(String resultado) {
 		this.resultado = resultado;
+	}
+
+	public ErrorState getError() {
+		return error;
+	}
+
+	public void setError(ErrorState error) {
+		this.error = error;
+	}
+
+	public List<Moneda> getMonedas() {
+		return monedas;
+	}
+
+	public void setMonedas(List<Moneda> monedas) {
+		this.monedas = monedas;
 	}
 
 }
