@@ -1,5 +1,5 @@
 var URL = "http://localhost:8090/";
-var URLLOCAL = "https://http://tienda-online.web.elasticloud.uy:8060/";
+var URLLOCAL = "https://tienda-online.web.elasticloud.uy/";
 
 
 
