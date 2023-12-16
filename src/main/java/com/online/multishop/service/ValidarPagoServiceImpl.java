@@ -3,6 +3,8 @@ package com.online.multishop.service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
@@ -162,8 +164,15 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		noti.setClass_id("multishop-APP");
 		noti.setAccion("obtenerNumeroOrden");	
 		noti.setId(UUID.randomUUID().toString());
-		
-		ResponseEntity<Integer> response = restTemplate.exchange(this.hostStock + "/shopping/orden-number", HttpMethod.GET,
+		String url= this.hostStock + "/shopping/orden-number";
+		URI uri= null;
+		try {
+			uri = new URI(url);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ResponseEntity<Integer> response = restTemplate.exchange(uri, HttpMethod.GET,
 				null, Integer.class);
 
 		if (response.getStatusCodeValue() == 200) {
@@ -191,14 +200,14 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		try {
 			String url = this.hostStock + "/shopping/orden/crear";		
 			HttpHeaders headers = new HttpHeaders();
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			HttpEntity<OrdenPago> requestEntity = new HttpEntity<>(orden, headers);
 			noti.setRequest(ow.writeValueAsString(requestEntity));
 			noti.setAccion("imagenesProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
 					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
@@ -224,6 +233,9 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -246,14 +258,14 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 
 		try {
 			String url = this.hostStock + "/shopping/orden/list-user?id="+idusuario;		
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest("id="+idusuario);			
 			noti.setAccion("obtenerOrdenPagoPorUsuarios");
 			noti.setId(UUID.randomUUID().toString());
 			
-			ResponseEntity<List<OrdenPago>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<OrdenPago>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<OrdenPago>>() {
 					});
 
@@ -280,6 +292,9 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -299,10 +314,9 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = ParametrosServiceImpl.logger + "/notification";
-
+			URI uri = new URI(url);
 			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
-					new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
 
 			if (response.getStatusCodeValue() == 201) {
 				responseResult.setCode(response.getStatusCodeValue());
@@ -320,6 +334,9 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 			responseResult.setError(data);
 			return responseResult;
 
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return responseResult;

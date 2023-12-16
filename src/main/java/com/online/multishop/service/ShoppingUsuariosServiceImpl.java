@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
@@ -78,10 +80,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = ParametrosServiceImpl.logger + "/notification";
-
+			URI uri = new URI(url);
 			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
-					new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
 
 			if (response.getStatusCodeValue() == 201) {
 				responseResult.setCode(response.getStatusCodeValue());
@@ -99,6 +100,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			responseResult.setError(data);
 			return responseResult;
 
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return responseResult;
@@ -114,6 +118,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/usuario/crear";
+			URI uri = new URI(url);
 			headers.set("Authorization ", "Bearer "+token);
 			HttpEntity<ShoppingUsuarios> requestEntity = new HttpEntity<>(usuario, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -121,8 +126,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest(ow.writeValueAsString(requestEntity));
 			noti.setAccion("crearUsuario");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
-					String.class, new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
+					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				
@@ -147,6 +152,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result= guardarLog(noti);
@@ -167,6 +175,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 		try {
 			String url = this.hostSeguridad + "/login/token?mail=" + mail + "&pwd=" + pwd;
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("notification-API");
 			noti.setRequest("mail=" + mail + "&pwd=" + pwd);
@@ -174,8 +183,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setId(UUID.randomUUID().toString());
 			ResponseEntity<String> response=null;
 			try {
-				response = restTemplate.exchange(url, HttpMethod.POST, null,
-						String.class, new Object[0]);
+				response = restTemplate.exchange(uri, HttpMethod.POST, null,
+						String.class);
 
 			} catch (Exception e) {
 				ErrorState data = new ErrorState();
@@ -215,6 +224,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -236,6 +248,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/login/validar";
+			URI uri = new URI(url);
 			headers.set("Authorization ", "Bearer "+token);
 			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -243,8 +256,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest(ow.writeValueAsString(requestEntity));
 			noti.setAccion("validarToken");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
-					String.class, new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
+					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				
@@ -269,6 +282,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result= guardarLog(noti);
@@ -289,6 +305,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail;
+			URI uri = new URI(url);
 			headers.set("Authorization", "Bearer "+token);
 			HttpEntity<String> requestEntity = new HttpEntity<>(mail, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -296,8 +313,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest("mail=" + mail);
 			noti.setAccion("obtenerDatosUsuarioLogin");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<ShoppingUsuarios> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
-					ShoppingUsuarios.class, new Object[0]);
+			ResponseEntity<ShoppingUsuarios> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
+					ShoppingUsuarios.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				responseResult.setCode(response.getStatusCodeValue());
@@ -322,6 +339,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result= guardarLog(noti);
@@ -344,6 +364,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/usuario/id-usuario?id=" + id;
+			URI uri = new URI(url);
 			headers.set("Authorization ", "Bearer "+token);
 			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -351,8 +372,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest("id=" + id);
 			noti.setAccion("buscarUsuarioPorId");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
-					String.class, new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
+					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				
@@ -377,6 +398,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result= guardarLog(noti);
@@ -398,6 +422,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/usuario/buscar?mail=" + mail;
+			URI uri = new URI(url);
 			headers.set("Authorization ", "Bearer "+token);
 			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -405,8 +430,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest("mail=" + mail);
 			noti.setAccion("validarUsuario");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
-					String.class, new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
+					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				
@@ -429,6 +454,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 				e1.printStackTrace();
 			}
 		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -464,6 +492,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/direccion/crear";
+			URI uri = new URI(url);
 			headers.set("Authorization ", "Bearer "+token);
 			HttpEntity<DireccionUsuario> requestEntity = new HttpEntity<>(dir, headers);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
@@ -471,8 +500,8 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setRequest(ow.writeValueAsString(requestEntity));
 			noti.setAccion("obtenerOrdenPagoId");	
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
-					String.class, new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
+					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
 				
@@ -497,6 +526,9 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result= guardarLog(noti);
@@ -518,6 +550,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.hostSeguridad + "/shopping/direccion/buscar?id="+idUsuario;
+			URI uri = new URI(url);
 			headers.set("Authorization", "Bearer "+token);
 			//headers.set("id", idUsuario);
 			HttpEntity<String> requestEntity = new HttpEntity<>(idUsuario, headers);
@@ -528,7 +561,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 			noti.setId(UUID.randomUUID().toString());
 			ResponseEntity<List<DireccionUsuario>> response=null;
 			try {
-			 response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+			 response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
 						new ParameterizedTypeReference<List<DireccionUsuario>>() {
 				});
 				

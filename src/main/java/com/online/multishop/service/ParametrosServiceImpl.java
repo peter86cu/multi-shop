@@ -3,7 +3,10 @@ package com.online.multishop.service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -88,10 +91,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			String url = this.logger + "/notification";
-
+			URI uri = new URI(url);
 			HttpEntity<Notification> requestEntity = new HttpEntity<>(noti, headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class,
-					new Object[0]);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
 
 			if (response.getStatusCodeValue() == 201) {
 				responseResult.setCode(response.getStatusCodeValue());
@@ -109,6 +111,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 			responseResult.setError(data);
 			return responseResult;
 
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return responseResult;
@@ -125,12 +130,12 @@ public class ParametrosServiceImpl implements ParametrosService {
 		try {
 
 			String url = this.hostStock + "/parametros/tipoproducto";
-
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setAccion("listadoTipoProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<TipoProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			URI uri = new URI(url);
+			ResponseEntity<List<TipoProducto>> response = restTemplate.exchange(uri , HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<TipoProducto>>() {
 					});
 
@@ -157,6 +162,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -178,13 +186,13 @@ public class ParametrosServiceImpl implements ParametrosService {
 		try {
 
 			String url = this.hostStock + "/parametros/categoria";
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 
 			noti.setAccion("listarCategorias");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<Categoria>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<Categoria>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<Categoria>>() {
 					});
 
@@ -211,6 +219,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -235,10 +246,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
-
+			URI uri = new URI(url);
 			noti.setAccion("listadoMarcasProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<MarcaProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<MarcaProducto>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<MarcaProducto>>() {
 					});
 
@@ -263,6 +274,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 				e1.printStackTrace();
 			}
 		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -290,10 +304,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
-
+			URI uri = new URI(url);
 			noti.setAccion("listadoModelosProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<ModeloProducto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<ModeloProducto>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<ModeloProducto>>() {
 					});
 
@@ -320,6 +334,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -343,10 +360,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
-
+			URI uri = new URI(url);
 			noti.setAccion("consultarListaProductos");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<Producto>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<Producto>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<Producto>>() {
 					});
 
@@ -373,6 +390,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -397,10 +417,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
-
+			URI uri = new URI(url);
 			noti.setAccion("listarMonedas");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<Moneda>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<Moneda>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<Moneda>>() {
 					});
 
@@ -427,6 +447,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -448,13 +471,13 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 		try {
 			String url = this.hostStock + "/productos/imagenes?id=" + id;
-			
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest(id);
 			noti.setAccion("imagenesProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<ProductoImagenes>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<List<ProductoImagenes>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<List<ProductoImagenes>>() {
 					});
 
@@ -481,6 +504,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -501,7 +527,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 		try {
 			String url = this.hostStock + "/productos/detalle?id=" + id;		
-			
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest(id);
@@ -509,7 +535,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 			noti.setId(UUID.randomUUID().toString());
 			ResponseEntity<ProductoDetalles> response=null;
 			try {
-				 response = restTemplate.exchange(url, HttpMethod.GET, null,
+				 response = restTemplate.exchange(uri, HttpMethod.GET, null,
 						ProductoDetalles.class);
 			} catch (org.springframework.web.client.HttpServerErrorException e) {
 				ErrorState data = new ErrorState();
@@ -595,14 +621,14 @@ public class ParametrosServiceImpl implements ParametrosService {
 		try {
 			String url = this.hostStock + "/shopping/guardar-cart";		
 			HttpHeaders headers = new HttpHeaders();
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			HttpEntity<RequestAddCart> requestEntity = new HttpEntity<>(request, headers);
 
 			noti.setAccion("imagenesProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity,
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity,
 					String.class);
 
 			if (response.getStatusCodeValue() == 200) {
@@ -628,6 +654,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -648,14 +677,14 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 		try {
 			String url = this.hostStock + "/shopping/obtener-cart?idcart=" + idCart + "&idusuario=" + idUsuario;		
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest("idcart=" + idCart + "&idusuario=" + idUsuario);
 			
 			noti.setAccion("obtenerCarrito");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<CarritoDetalle> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<CarritoDetalle> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					CarritoDetalle.class);
 
 			if (response.getStatusCodeValue() == 200) {
@@ -681,6 +710,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
@@ -703,7 +735,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 		try {
 			String url = this.hostStock + "/shopping/obtener-cart-usuario?idusuario=" + idUsuario;		
-
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest("idusuario=" + idUsuario);
@@ -712,7 +744,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 			noti.setId(UUID.randomUUID().toString());
 			ResponseEntity<List<CarritoDetalle>> response=null;
 			try {
-				 response = restTemplate.exchange(url, HttpMethod.GET, null,
+				 response = restTemplate.exchange(uri, HttpMethod.GET, null,
 						new ParameterizedTypeReference<List<CarritoDetalle>>() {
 						});
 			} catch (org.springframework.web.client.HttpServerErrorException e) {
@@ -779,13 +811,13 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 		try {
 			String url = this.hostStock + "/shopping/obtener-estado-cart?id=" + id;		
-			
+			URI uri = new URI(url);
 			noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			noti.setClass_id("multishop-APP");
 			noti.setRequest("id=" + id);
 			noti.setAccion("obtenerEstadoCarrito");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<ShoppingHistoryEstado> response = restTemplate.exchange(url, HttpMethod.GET, null,
+			ResponseEntity<ShoppingHistoryEstado> response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					ShoppingHistoryEstado.class);
 
 			if (response.getStatusCodeValue() == 200) {
@@ -809,6 +841,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 				e1.printStackTrace();
 			}
 		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
