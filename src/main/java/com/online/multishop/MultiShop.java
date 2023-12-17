@@ -16,9 +16,9 @@ public class MultiShop {
 		SpringApplication.run(MultiShop.class, args);
 	}
 
-	@Bean
+	/*@Bean
 	public RestTemplate template() {
 		return new RestTemplate();
 
-	}
+	}*/
 }
