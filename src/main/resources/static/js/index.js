@@ -1,5 +1,5 @@
 var URL = "http://localhost:8090/";
-var URLLOCAL = "http://localhost:8080/";
+var URLLOCAL = "http://localhost:8080";
 
 
 
