@@ -109,10 +109,10 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 				noti.setFecha_inicio(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 				noti.setClass_id("multishop-APP");
 				noti.setRequest(ow.writeValueAsString(requestEntity));
-				noti.setAccion("consultarPago");	
+				noti.setAccion("validarPagoOrden");	
 				noti.setId(UUID.randomUUID().toString());
 				
-				ResponseEntity<ValidarPagoResponse> response = restTemplate.exchange(this.dlocalGo , HttpMethod.GET,
+				ResponseEntity<ValidarPagoResponse> response = restTemplate.exchange(this.dlocalGo , HttpMethod.POST,
 						requestEntity, ValidarPagoResponse.class);
 
 				if (response.getStatusCodeValue() == 200) {
