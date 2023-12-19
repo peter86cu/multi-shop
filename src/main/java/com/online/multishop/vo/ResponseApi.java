@@ -62,7 +62,7 @@ public class ResponseApi {
 	
 	public ResponseApi() {
 		super();
-		this.setTodasCategorias(null);
+		//this.setTodasCategorias(null);
 		this.setCategorias(null);
 		this.setTipoProducto(null);
 		this.setDetalle(null);

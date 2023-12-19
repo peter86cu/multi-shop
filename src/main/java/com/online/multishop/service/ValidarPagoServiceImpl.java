@@ -47,7 +47,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	private boolean desarrollo = false;
+	private boolean desarrollo = true;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();
@@ -81,7 +81,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 				dlocalGo = "https://api-sbx.dlocalgo.com/v1/payments/";
 				autentication = "ICxxdYAWmYGMxBqBHYxwvEJotcExWHUZ:qKRLqfsYE1LZHS2PvPFPjZM5XUY8HT5Aj11UHUAD";
 				notificationURL = "https://ayalait.com/notification/";
-				success_pago_url = "http://localhost:8060/shopping?iduser=";
+				success_pago_url = "http://localhost:8080/shopping?iduser=";
 			} else {
 				cargarServer();
 			}
@@ -121,7 +121,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 					noti.setResponse(ow.writeValueAsString(responseOrder));			
 				}
 
-			} catch (org.springframework.web.client.HttpServerErrorException e) {
+			} catch (org.springframework.web.client.HttpClientErrorException e) {
 				JsonParser jsonParser = new JsonParser();
 				int in = e.getLocalizedMessage().indexOf("{");
 				int in2 = e.getLocalizedMessage().indexOf("}");
@@ -143,6 +143,8 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}catch (Exception ex) {
+				System.err.println(ex.getLocalizedMessage());
 			}
 			noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 			ResponseResultado result=guardarLog(noti);

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -26,11 +25,10 @@ import com.online.multishop.modelo.ResponseResultado;
 import com.online.multishop.vo.*;
 import com.ayalait.fecha.FormatearFechas;
 import com.ayalait.logguerclass.Notification;
+import com.ayalait.utils.MessageCodeImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -41,7 +39,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 	public static String rutaDowloadProducto;
 	private String hostStock;
 	public static String logger;
-	private boolean desarrollo = false;
+	private boolean desarrollo = true;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	@Autowired
@@ -477,9 +475,32 @@ public class ParametrosServiceImpl implements ParametrosService {
 			noti.setRequest(id);
 			noti.setAccion("imagenesProducto");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<List<ProductoImagenes>> response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<List<ProductoImagenes>>() {
-					});
+			ResponseEntity<List<ProductoImagenes>> response=null;
+			try {
+				 response = restTemplate.exchange(uri, HttpMethod.GET, null,
+						new ParameterizedTypeReference<List<ProductoImagenes>>() {
+						});
+			} catch (org.springframework.web.client.HttpClientErrorException e) {
+				JsonParser jsonParser = new JsonParser();
+				int in = e.getLocalizedMessage().indexOf("{");
+				int in2 = e.getLocalizedMessage().indexOf("}");
+				String cadena = e.getMessage().substring(in, in2+1);
+				JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+				responseResult.setCode(myJson.get("code").getAsInt());
+				ErrorState data = new ErrorState();
+				data.setCode(myJson.get("code").getAsInt());
+				data.setMenssage(MessageCodeImpl.getMensajeAPIPago(myJson.get("code").getAsString() ));
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+				ResponseResultado result = guardarLog(noti);
+				if (!result.isStatus()) {
+					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
+				}
+
+				return responseResult;	
+			}
+			
 
 			if (response.getStatusCodeValue() == 200) {
 
@@ -537,26 +558,26 @@ public class ParametrosServiceImpl implements ParametrosService {
 			try {
 				 response = restTemplate.exchange(uri, HttpMethod.GET, null,
 						ProductoDetalles.class);
-			} catch (org.springframework.web.client.HttpServerErrorException e) {
+			} catch (org.springframework.web.client.HttpClientErrorException e) {
+				JsonParser jsonParser = new JsonParser();
+				int in = e.getLocalizedMessage().indexOf("{");
+				int in2 = e.getLocalizedMessage().indexOf("}");
+				String cadena = e.getMessage().substring(in, in2+1);
+				JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+				responseResult.setCode(myJson.get("code").getAsInt());
 				ErrorState data = new ErrorState();
-				data.setCode(e.getStatusCode().value());
-				data.setMenssage(e.getMessage());
+				data.setCode(myJson.get("code").getAsInt());
+				data.setMenssage(MessageCodeImpl.getMensajeAPIPago(myJson.get("code").getAsString() ));
 				responseResult.setCode(data.getCode());
 				responseResult.setError(data);
-				try {
-					noti.setResponse(ow.writeValueAsString(responseResult));
-				} catch (JsonProcessingException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
 				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 				ResponseResultado result = guardarLog(noti);
 				if (!result.isStatus()) {
 					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
 				}
 
-				return responseResult;	
-			}catch (org.springframework.web.client.HttpClientErrorException e) {
+				return responseResult;
+			}catch (org.springframework.web.client.HttpServerErrorException e) {
 				ErrorState data = new ErrorState();
 				data.setCode(e.getStatusCode().value());
 				data.setMenssage(e.getMessage());
@@ -582,7 +603,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 			if (response.getStatusCodeValue() == 200) {				
 				responseResult.setStatus(true);
 				responseResult.setDetalle(response.getBody());
-				noti.setResponse(ow.writeValueAsString(responseResult));
+				//noti.setResponse(ow.writeValueAsString(responseResult));
 
 			}
 
@@ -684,8 +705,31 @@ public class ParametrosServiceImpl implements ParametrosService {
 			
 			noti.setAccion("obtenerCarrito");
 			noti.setId(UUID.randomUUID().toString());
-			ResponseEntity<CarritoDetalle> response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					CarritoDetalle.class);
+			ResponseEntity<CarritoDetalle> response =null;
+			try {
+				response= restTemplate.exchange(uri, HttpMethod.GET, null,
+						CarritoDetalle.class);
+			} catch (org.springframework.web.client.HttpClientErrorException e) {
+				JsonParser jsonParser = new JsonParser();
+				int in = e.getLocalizedMessage().indexOf("{");
+				int in2 = e.getLocalizedMessage().indexOf("}");
+				String cadena = e.getMessage().substring(in, in2+1);
+				JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+				responseResult.setCode(myJson.get("code").getAsInt());
+				ErrorState data = new ErrorState();
+				data.setCode(myJson.get("code").getAsInt());
+				data.setMenssage(MessageCodeImpl.getMensajeAPIPago(myJson.get("code").getAsString() ));
+				responseResult.setCode(data.getCode());
+				responseResult.setError(data);
+				try {
+					noti.setResponse(ow.writeValueAsString(responseResult));
+				} catch (JsonProcessingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				return responseResult;
+			}
+			
 
 			if (response.getStatusCodeValue() == 200) {
 

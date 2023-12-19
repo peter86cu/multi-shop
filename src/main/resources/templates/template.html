@@ -10,7 +10,7 @@
 	<meta content="Free HTML Templates" name="description">
 
 	<!-- Favicon -->
-	<link href="img/favicon.ico" rel="icon">
+	<link href="img/multi-shop-V1.ico" rel="icon">
 
 	<!-- Google Web Fonts -->
 	<link rel="preconnect" href="https://fonts.gstatic.com">
@@ -105,8 +105,8 @@
 					</a>
 					<nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 bg-light"
 						id="navbar-vertical" style="width: calc(100% - 30px); z-index: 999;">
-						<div id="item-category" class="navbar-nav w-100">
-
+						<div th:each="tCateg :${todaCategoria}" class="navbar-nav w-100">
+						  <a th:onclick="linkEnvioProductosPorCategoria('products','[(${tCateg.id_categoria_producto})]')"  class="nav-item nav-link" th:text="${tCateg.categoria}"></a>
 
 						</div>
 					</nav>
