@@ -39,7 +39,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 	public static String rutaDowloadProducto;
 	private String hostStock;
 	public static String logger;
-	private boolean desarrollo = true;
+	private boolean desarrollo = false;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	@Autowired
