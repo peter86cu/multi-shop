@@ -47,7 +47,7 @@
                     <tr th:each="carr :${cartObtenido.detalle}">
                         <td class="align-middle"><img th:src="@{${'img/'+ carr.imagen}}" alt="" style="width: 50px;" th:text="${carr.nombre}"> </td>
 
-                        <td th:each="mony :${monedas}" th:if="${mony.defecto == 1}" class="align-middle" th:text="${mony.simbolo}+' '+ ${#numbers.formatDecimal(carr.precio,1,'POINT',2,'POINT')}"> </td>
+                        <td th:each="mony :${monedas}" th:if="${mony.defecto == 1}" class="align-middle" th:text="${mony.simbolo}+' '+ ${carr.precio}"> </td>
 
                         <td class="align-middle">
                             <div class="input-group quantity mx-auto" style="width: 100px;">
@@ -65,7 +65,7 @@
                             </div>
                         </td>
 
-                        <td th:each="mony :${monedas}" th:if="${mony.defecto == 1}" th:text="${mony.simbolo}+' '+ ${#numbers.formatDecimal(carr.precio*carr.cantidad,1,'POINT',2,'POINT')} " class="align-middle" > </td>
+                        <td th:each="mony :${monedas}" th:if="${mony.defecto == 1}" th:text="${mony.simbolo}+' '+ ${carr.precio*carr.cantidad} " class="align-middle" > </td>
                         <td class="align-middle"><button class="btn btn-sm btn-danger"th:onclick="eliminarProductoCarrito([(${carr.idproducto})])"><i class="fa fa-times"></i></button></td>
                     </tr>
                     </tbody>
@@ -94,7 +94,7 @@
                         <div class="d-flex justify-content-between mb-3">
                             <h6>Subtotal</h6>
 
-                            <h6 th:each="mony :${monedas}" th:if="${mony.defecto == 1}" th:text="${mony.simbolo}+' '+ ${#numbers.formatDecimal(cartObtenido.cart.totalapagar,1,'POINT',2,'POINT')}" id="subtotal-cart">0</h6>
+                            <h6 th:each="mony :${monedas}" th:if="${mony.defecto == 1}" th:text="${mony.simbolo}+' '+ ${cartObtenido.cart.totalapagar}" id="subtotal-cart">0</h6>
 
 
                         </div>

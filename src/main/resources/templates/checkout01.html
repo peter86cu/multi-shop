@@ -126,7 +126,7 @@
 							class="d-flex justify-content-between">
 							<p th:text="${carr.nombre}"></p>
 							<p
-								th:text="${#numbers.formatDecimal(carr.precio,1,'POINT',2,'POINT')}"></p>
+								th:text="${#numbers.formatDecimal(carr.precio,1,'POINT',0,'COMMA')}"></p>
 						</div>
 					</div>
 
@@ -134,7 +134,7 @@
 						<div class="d-flex justify-content-between mb-3">
 							<h6>Subtotal</h6>
 							<h6 th:each="mony :${monedas}" th:if="${mony.defecto == 1}"
-								th:text="${mony.simbolo}+' '+ ${#numbers.formatDecimal(cartObtenido.cart.totalapagar,1,'POINT',2,'POINT')}"
+								th:text="${mony.simbolo}+' '+ ${#numbers.formatDecimal(cartObtenido.cart.totalapagar,1,'POINT',0,'COMMA')}"
 								id="subtotal-cart"></h6>
 						</div>
 						<div class="d-flex justify-content-between">
