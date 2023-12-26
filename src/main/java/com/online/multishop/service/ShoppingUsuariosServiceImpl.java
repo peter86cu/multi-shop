@@ -48,7 +48,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
-	private boolean desarrollo = true;
+	private boolean desarrollo = false;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();

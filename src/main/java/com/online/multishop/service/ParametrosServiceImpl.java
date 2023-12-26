@@ -46,7 +46,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 	private String hostReursosHumanos;
 	public int codigoPais=2;
 	public static String logger;
-	private boolean desarrollo = true;
+	private boolean desarrollo = false;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	@Autowired
