@@ -1,6 +1,6 @@
 package com.online.multishop.utils;
 
-import com.online.multishop.modelo.ProductoImagenes;
+import com.ayalait.modelo.ProductoImagenes;
 import com.online.multishop.service.ParametrosServiceImpl;
 
 import java.io.File;

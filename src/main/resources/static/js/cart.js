@@ -1,5 +1,6 @@
 
 function guardarCarritoConLogin(idUsuario) {
+	activarLoader()
 let carrito=document.getElementById("carrito-item").innerText;
 if(carrito>0){
  var datos = new FormData();
@@ -13,7 +14,7 @@ if(carrito>0){
     datos.append("producto", "");
 
     $.ajax({
-        url: URLLOCAL + "cart",
+        url: URLLOCAL + "add-item-cart",
         method: "POST",
         data: datos,
         chache: false,
@@ -21,6 +22,7 @@ if(carrito>0){
         processData: false,
         dataType: "json",
         success: function (respuesta) {
+			desactivarLoading()
             var response = JSON.stringify(respuesta, null, '\t');
             var datos = JSON.parse(response);
             if (datos.code == 200) {
@@ -63,7 +65,7 @@ var simbolo = document.getElementById("total-cart").innerText;
 }
 
 function agregarProductoCarrito(idProducto, precio, accion) {
-
+activarLoader()
     //sessionStorage.removeItem("cart");
     let cantCart = 0;
     let total = 0;
@@ -133,6 +135,7 @@ function agregarProductoCarrito(idProducto, precio, accion) {
         processData: false,
         dataType: "json",
         success: function (respuesta) {
+			desactivarLoading()
             var response = JSON.stringify(respuesta, null, '\t');
             var datos = JSON.parse(response);
             if (datos.code == 200) {
@@ -159,7 +162,7 @@ function agregarProductoCarrito(idProducto, precio, accion) {
 
 
 function eliminarProductoCarrito(idProducto) {
-
+activarLoader()
     var idUsuario = "";
     //if (sessionStorage.getItem("token") != null) {
     idUsuario = sessionStorage.getItem("userId");
@@ -180,6 +183,7 @@ function eliminarProductoCarrito(idProducto) {
         processData: false,
         dataType: "json",
         success: function (respuesta) {
+			desactivarLoading()
             var response = JSON.stringify(respuesta, null, '\t');
             var datos = JSON.parse(response);
             if (datos.code == 200) {
@@ -193,7 +197,7 @@ function eliminarProductoCarrito(idProducto) {
 
 
 function validarPago(direccion) {
-
+activarLoader()
     var totalPagoText = document.getElementById("total-cart").innerText;
     var codeMoneda = document.getElementById("moneda-pago-select");
     let totalPago= totalPagoText.slice(1);
@@ -208,7 +212,7 @@ function validarPago(direccion) {
             window.location.href = URLLOCAL + "checkout01?curenty=" + codeMoneda.value + "&pay=" + totalPago + "&userId=" + $("#userId").val();
         }
     }
-
+desactivarLoading()
 
 }
 

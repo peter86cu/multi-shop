@@ -1,20 +1,32 @@
 function linkEnvioCateg(direccion, id, producto) {
   // sessionStorage.setItem("user", "invitado1");
-
+activarLoader()
   var data = sessionStorage.getItem("user");
 
   window.location.href = URLLOCAL + direccion + "?id=" + id;
+  desactivarLoading()
 }
 
 function linkEnvioProductosPorCategoria(direccion, id, categoria) {
+	activarLoader()
   window.location.href = URLLOCAL + direccion + "?id=" + id;
+  desactivarLoading()
 }
 
 function linkEnvioDetalleProducto(direccion, id, categoria) {
+	activarLoader()
   window.location.href = URLLOCAL + direccion + "?id=" + id;
+  desactivarLoading()
+}
+
+function linkValidarComprasUser(direccion, id) {
+	activarLoader()
+  window.location.href = URLLOCAL + direccion + "?id=" + id;
+  desactivarLoading()
 }
 
 function linkEnvioCardProductos(direccion) {
+	activarLoader()
   if (
      $("#cardItems").val() == "0" || $("#cardItems").val() == ""
   ) {
@@ -39,10 +51,13 @@ function linkEnvioCardProductos(direccion) {
            "search?idCart=" +
          $("#cardId").val()+"&idUsuario="+sessionStorage.getItem("userId");
    }
+   desactivarLoading()
   }
 
 function linkListadoComprasUser(direccion, id) {
+  activarLoader()
   window.location.href = URLLOCAL + direccion + "?iduser=" + id;
+  desactivarLoading()
 }
 
 

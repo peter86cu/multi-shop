@@ -19,19 +19,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.online.multishop.modelo.*;
-import com.online.multishop.vo.*;
+ import com.online.multishop.vo.*;
 
 import com.ayalait.fecha.FormatearFechas;
 import com.ayalait.logguerclass.Notification;
+import com.ayalait.response.ResponseResultado;
+import com.ayalait.utils.ErrorState;
 import com.ayalait.utils.MessageCodeImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.online.multishop.modelo.ResponseResultado;;
-
+import com.multishop.modelo.OrdenPago;
+import com.multishop.response.*;
+ 
 @Service
 public class ValidarPagoServiceImpl implements ValidarPagoService {
 
@@ -47,7 +49,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	private boolean desarrollo = false;
+	private boolean desarrollo = true;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();
@@ -297,7 +299,22 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}catch (org.springframework.web.client.HttpClientErrorException e) {
+			JsonParser jsonParser = new JsonParser();
+			int in = e.getLocalizedMessage().indexOf("{");
+			int in2 = e.getLocalizedMessage().indexOf("}");
+			String cadena = e.getMessage().substring(in, in2+1);
+			JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+			responseResult.setCode(myJson.get("code").getAsInt());
+			ErrorState data = new ErrorState();
+			data.setCode(myJson.get("code").getAsInt());
+			data.setMenssage(MessageCodeImpl.getMensajeServiceCompras(myJson.get("code").getAsString() ));
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+		} 
+		
+		
+		
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {

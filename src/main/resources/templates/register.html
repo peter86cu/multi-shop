@@ -1,0 +1,111 @@
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="template :: html_head"></head>
+
+<body>
+
+	<!-- Topbar Start -->
+	<div th:replace="template :: header"></div>
+	<!-- Navbar Start -->
+
+	<div th:replace="template :: menu"></div>
+	<!-- Navbar End -->
+
+
+
+	<!-- Breadcrumb Start -->
+	<div class="container-fluid">
+		<div class="row px-xl-5">
+			<div class="col-12">
+				<nav class="breadcrumb bg-light mb-30">
+					<a class="breadcrumb-item text-dark" href="index">Inicio</a> <a
+						class="breadcrumb-item text-dark" href="register">Mi cuenta</a>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<!-- Breadcrumb End -->
+
+
+	<!-- Cart Start -->
+	<div class="container-fluid">
+		<div class="row px-xl-5">
+			<div class="col-lg-8 table-responsive mb-5">
+				<div class="bg-light p-30 mb-5">
+					<div class="row">
+						<div class="col-md-4 form-group">
+							<label>Nombre</label> <input id="nombre" class="form-control"
+								type="text" onchange="validarChange(this,'nombre')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Apellidos</label> <input id="apellidos"
+								class="form-control" type="text"
+								onchange="validarChange(this,'apellidos')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>E-mail</label> <input id="email" class="form-control"
+								type="text" onchange="validarChange(this,'email')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>No. Télefono</label> <input id="telefono"
+								class="form-control" type="text"
+								onchange="validarChange(this,'telefono')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Tipo documento</label> <select class="custom-select"
+								id="tipo-doc-select"
+								onchange="validarChange(this,'tipo-doc-select')">
+								<option th:each="doc :${tipoDocumento}" th:value="${doc.id}"
+									th:text="${doc.tipo}"></option>
+							</select>
+						</div>
+						<div class="col-md-3 form-group">
+							<label>Documento</label> <input id="documento"
+								class="form-control" type="text"
+								onchange="validarChange(this,'documento')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Password</label> <input id="password" class="form-control"
+								type="password" onchange="validarChange(this,'password')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Confirmar Password</label> <input id="passwordConfir"
+								class="form-control" type="password"
+								onchange="validarPassword(this,'passwordConfir')">
+						</div>
+
+						<div class="col-md-10 form-group">
+							<br>
+							<div class="custom-control custom-checkbox">
+								<button class="btn btn-primary" id="btnRegistrar" disabled
+									onclick="regitrarUsuario()">Registrarme</button>
+								<button class="btn btn-info">Cancelar</button>
+							</div>
+
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<!-- Cart End -->
+
+
+	<div th:replace="template :: footerTemplate"></div>
+	<div th:replace="template :: loadingTemplate"></div>
+	<div th:replace="template :: loginTemplate"></div>
+
+
+
+	<!-- Back to Top -->
+	<a href="#" class="btn btn-primary back-to-top"><i
+		class="fa fa-angle-double-up"></i></a>
+
+<div th:replace="template :: javaScriptTemplate"></div>
+
+
+</body>
+
+</html>

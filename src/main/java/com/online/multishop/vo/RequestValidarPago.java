@@ -1,6 +1,6 @@
 package com.online.multishop.vo;
 
-import com.online.multishop.modelo.ShoppingUsuariosPago;
+import com.multishop.modelo.ShoppingUsuariosPago;
 
 public class RequestValidarPago {
 	

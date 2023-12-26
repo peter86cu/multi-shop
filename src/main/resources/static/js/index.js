@@ -1,6 +1,6 @@
 var URL = "http://localhost:8090/";
-//var URLLOCAL = "http://localhost:8080/";
-var URLLOCAL = "https://tienda-online.web.elasticloud.uy/";
+var URLLOCAL = "http://localhost:8080/";
+//var URLLOCAL = "https://tienda-online.web.elasticloud.uy/";
 
 
 
@@ -261,3 +261,63 @@ function validarSession(){
  }
 
 }
+
+
+
+	var x = $('#search').val();
+
+		$(".search").empty();
+		$(document).ready(function() {
+			//$("#addProductos").find(".marca").val("");
+			//$("#addProductos input[type='checkbox']").prop('checked', false).change();
+			$(".search").select2({
+				//dropdownParent: $('#addProductos .modal-body'),
+				theme: 'bootstrap-5',
+				language: {
+					inputTooShort: function() {
+						return "Buscar productos.";
+					},
+					minimumInputLength: function() {
+						return "Buscar productos.";
+					},
+					noResults: function() {
+						categoriaTemp = 0;
+						return "No hay resultado";
+					},
+					searching: function() {
+
+						return "Buscando..";
+					}
+				},
+
+				ajax: {
+					url: URLLOCAL + "busqueda-global-products",
+					method: "POST",
+					dataType: 'json',
+					delay: 250,
+					data: function(params) {
+						return {
+							product: params.term
+														
+						};
+					},
+					processResults: function(data) {
+						if (data == null)
+							tipoProductoTemp = 0;
+						return {
+							results: data
+						};
+					},
+					cache: false
+				},
+				minimumInputLength: 2
+			}).on('change', function(e) {
+				;
+				linkEnvioProductosPorCategoria('products', $('.search').select2('data')[0].id, null)
+				$("#search").select2('data', null);
+			})
+		});
+
+	
+
+

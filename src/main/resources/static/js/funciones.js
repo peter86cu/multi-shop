@@ -1,30 +1,10 @@
+function activarLoader(){
+	abrirModal('loadingModal');
+}
 
-/*var tmrReady = setInterval(isPageFullyLoaded, 100);
-    
-function isPageFullyLoaded() {
-	if (document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
-		
-		clearInterval(tmrReady);
-		$('.loader_bg').fadeToggle();
+function desactivarLoading(){
+	cerrarModal('loadingModal');
 	}
-}*/
-
-/*$(window).on('load', function () {
-	cargarDatos()
-	
-	$('.loader_bg').fadeToggle();
-   
-});*/
-
-
-
-/*setTimeout(function () {
-	
-	cargarDatos();	
-	$('.loader_bg').fadeToggle();	
-  }, 1500);
-*/
-
 
 function getQueryVariable(variable) {
 	// Estoy asumiendo que query es window.location.search.substring(1);
@@ -171,6 +151,24 @@ function mensajeProduct(mensaje) {
 
         }
     });
+}
+
+function mensajeErrorGenerico(mensaje) {
+  Swal.fire({
+      text: mensaje,
+      //type: 'warning',
+      icon: "warning",
+      showCancelButton: false,
+      confirmButtonText: 'OK',
+      cancelButtonText: "No",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+  }).then((result) => {
+      if (result.value) {
+          return true;
+      }
+      return false;
+  })
 }
 
 

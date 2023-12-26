@@ -1,158 +1,197 @@
 
 
-function pagarOrden(){
-  /*let loading =  `<div class="loader_bg" id="cargando">
-  <div class="loader"><img src="img/loading.gif" alt="#" /></div>
-  </div>`;
-  document.writeln(loading);*/
-  var idDireccion="";
-  let cantidadDir=$("#cantidadDirecciones").val();
-  let pos=1;
-  while(pos<=cantidadDir){
-    if (document.getElementById(pos).checked)
-    {
-    idDireccion=pos;
-    break;
-    }
-    pos++;
-  }
+function pagarOrden() {
+	activarLoader()
+	var idDireccion = "";
+	let cantidadDir = $("#cantidadDirecciones").val();
+	let pos = 1;
+	while (pos <= cantidadDir) {
+		if (document.getElementById(document.getElementsByName(pos)[0].value).checked) {
+			idDireccion = document.getElementsByName(pos)[0].value;
+			break;
+		}
+		pos++;
+	}
 
-if(idDireccion!=""){
-var datos = new FormData();
+	if (idDireccion != "") {
+		var datos = new FormData();
 
-  var idUsuario=sessionStorage.getItem("userId");
-  var iva = document.getElementById("iva-cart").innerHTML;
-  iva= iva.slice(1);
-  iva= iva.trim();
-  datos.append("userId", idUsuario);
-  datos.append("moneda", getQueryVariable("curenty"));
-  datos.append("total", Math.floor(getQueryVariable("pay")));
-  datos.append("cartId", $("#cardId").val());
-  datos.append("iva", Math.floor(iva));
-   datos.append("idDireccion", idDireccion);
+		var idUsuario = sessionStorage.getItem("userId");
+		var iva = document.getElementById("iva-cart").innerHTML;
+		iva = iva.slice(1);
+		iva = iva.trim();
+		datos.append("userId", idUsuario);
+		datos.append("moneda", getQueryVariable("curenty"));
+		datos.append("total", Math.floor(getQueryVariable("pay")));
+		datos.append("cartId", $("#cardId").val());
+		datos.append("iva", Math.floor(iva));
+		datos.append("idDireccion", idDireccion);
 
-        $.ajax({
-          url: URLLOCAL+"validar-pago",
-          method: "POST",
-          data: datos,
-          chache: false,
-          contentType: false,
-          processData: false,
-          dataType: "json",
-            success: function (respuesta) {
-                var response = JSON.stringify(respuesta, null, '\t');
-                var datos = JSON.parse(response);
-                if (datos.code == 200) {
-                  sessionStorage.setItem("sessionId", datos.cartIDSession);
-                  sessionStorage.setItem("cartIDSession", datos.cartIDSession);
-                  sessionStorage.setItem("cart", "0");
+		$.ajax({
+			url: URLLOCAL + "validar-pago",
+			method: "POST",
+			data: datos,
+			chache: false,
+			contentType: false,
+			processData: false,
+			dataType: "json",
+			success: function(respuesta) {
+				desactivarLoading()
+				var response = JSON.stringify(respuesta, null, '\t');
+				var datos = JSON.parse(response);
+				if (datos.code == 200) {
+					sessionStorage.setItem("sessionId", datos.cartIDSession);
+					sessionStorage.setItem("cartIDSession", datos.cartIDSession);
+					sessionStorage.setItem("cart", "0");
 
-                  window.location =datos.pagoValidado.redirect_url;
-                }else if (datos.code == 500) {
+					window.location = datos.pagoValidado.redirect_url;
+				} else if (datos.code == 500) {
 
-                  //sessionStorage.removeItem("cart");
-                  //sessionStorage.removeItem("cartIDSession");
-                  mensajeErrorPago(datos.resultado)
-                  //salir()
+					//sessionStorage.removeItem("cart");
+					//sessionStorage.removeItem("cartIDSession");
+					mensajeErrorPago(datos.resultado)
+					//salir()
 
-              }else{
-				  mensajeErrorPago402(datos.error.menssage)
-			  }
+				} else {
+					mensajeErrorPago402(datos.error.menssage)
+				}
 
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
+			}
+		}).fail(function(jqXHR, textStatus, errorThrown) {
 
-              var msg = '';
-              if (jqXHR.status === 0) {
-                // msg = 'No connection.\n Verify Network.';
-                //ERR_CONNECTION_REFUSED hits this one
+			var msg = '';
+			if (jqXHR.status === 0) {
+				// msg = 'No connection.\n Verify Network.';
+				//ERR_CONNECTION_REFUSED hits this one
 
-                window.location.href = URLLOCAL + "maintenance"
-              } else if (jqXHR.status == 404) {
-                window.location.href = URLLOCAL + "404"
-              } else if (jqXHR.status == 500) {
-                msg = 'Internal Server Error [500].';
-              }
+				window.location.href = URLLOCAL + "maintenance"
+			} else if (jqXHR.status == 404) {
+				window.location.href = URLLOCAL + "404"
+			} else if (jqXHR.status == 500) {
+				msg = 'Internal Server Error [500].';
+			}
 
-              // limpiarSession()
-            });
+			// limpiarSession()
+		});
 
 
-}else{
-mensajeDireccion("Debe seleccionar una dirección de envío para continuar.");
+	} else {
+		mensajeDireccion("Debe seleccionar una dirección de envío para continuar.");
 
-}
+	}
 
 
 
 }
 
-$('input[type="checkbox"]').on('change', function(e){
-    if (this.checked) {
-        //console.log('Checkbox ' + $(e.currentTarget).val() + ' checked');
-        document.getElementById("dir"+$(e.currentTarget).val()).style.display = "block";
-    } else {
-        //console.log('Checkbox ' + $(e.currentTarget).val() + ' unchecked');
-        document.getElementById("dir"+$(e.currentTarget).val()).style.display = "none";
-    }
+$('input[type="checkbox"]').on('change', function(e) {
+	if (this.checked) {
+		//console.log('Checkbox ' + $(e.currentTarget).val() + ' checked');
+		document.getElementById("dir" + $(e.currentTarget).val()).style.display = "block";
+	} else {
+		//console.log('Checkbox ' + $(e.currentTarget).val() + ' unchecked');
+		document.getElementById("dir" + $(e.currentTarget).val()).style.display = "none";
+	}
 });
 
 function mensajeErrorPago(mensaje) {
-  Swal.fire({
-      text: mensaje,
-      //type: 'warning',
-      icon: "warning",
-      showCancelButton: false,
-      confirmButtonText: 'OK',
-      cancelButtonText: "No",
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-  }).then((result) => {
-      if (result.value) {
-          location.href = "index";
-      }
-      return false;
-  })
+	Swal.fire({
+		text: mensaje,
+		//type: 'warning',
+		icon: "warning",
+		showCancelButton: false,
+		confirmButtonText: 'OK',
+		cancelButtonText: "No",
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+	}).then((result) => {
+		if (result.value) {
+			desactivarLoading()
+			location.href = "index";
+		}
+		desactivarLoading()
+		return false;
+	})
 }
 
 function mensajeErrorPago402(mensaje) {
-  Swal.fire({
-      text: mensaje,
-      //type: 'warning',
-      icon: "warning",
-      showCancelButton: false,
-      confirmButtonText: 'OK',
-      cancelButtonText: "No",
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-  }).then((result) => {
-      if (result.value) {
-          return true;
-      }
-      return false;
-  })
+	Swal.fire({
+		text: mensaje,
+		//type: 'warning',
+		icon: "warning",
+		showCancelButton: false,
+		confirmButtonText: 'OK',
+		cancelButtonText: "No",
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+	}).then((result) => {
+		if (result.value) {
+			desactivarLoading()
+			return true;
+		}
+		desactivarLoading()
+		return false;
+	})
 }
 
 
 function mensajeDireccion(mensaje) {
-  Swal.fire({
-      text: mensaje,
-      //type: 'warning',
-      icon: "warning",
-      showCancelButton: false,
-      confirmButtonText: 'OK',
-      cancelButtonText: "No",
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-  }).then((result) => {
-      if (result.value) {
-          return true;
-      }
-      return false;
-  })
+	Swal.fire({
+		text: mensaje,
+		//type: 'warning',
+		icon: "warning",
+		showCancelButton: false,
+		confirmButtonText: 'OK',
+		cancelButtonText: "No",
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+	}).then((result) => {
+		if (result.value) {
+			desactivarLoading()
+			return true;
+		}
+		return false;
+	})
 }
 
 
+function guardarDireccionNueva() {
+	
+	activarLoader()
+	
+	var datos = new FormData();
+
+	var idUsuario = sessionStorage.getItem("userId");
+	var dpto = document.getElementById("tipo-dpto-select");
+
+	datos.append("alias", $("#txt_alias").val());
+	datos.append("departamento", dpto.value);
+	datos.append("ciudad", $("#txt_ciudad").val());
+	datos.append("direccion", $("#txt_direccion").val());
+	datos.append("codigo", $("#txt_zip").val());
+	datos.append("userId", idUsuario);
+
+	$.ajax({
+		url: URLLOCAL + "add-new-address",
+		method: "POST",
+		data: datos,
+		chache: false,
+		contentType: false,
+		processData: false,
+		dataType: "json",
+		success: function(respuesta) {
+			desactivarLoading()
+			var response = JSON.stringify(respuesta, null, '\t');
+			var datos = JSON.parse(response);
+			if (datos.status) {
+				cerrarModal('ModalNuevaDireccion')
+				mensajeProduct(datos.resultado);			
+			}else{
+				mensajeErrorPago402(datos.error.menssage)
+			}
+		}
+	})
+}
 
 
 

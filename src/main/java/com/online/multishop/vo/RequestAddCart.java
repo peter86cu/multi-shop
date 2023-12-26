@@ -4,8 +4,9 @@ package com.online.multishop.vo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.online.multishop.modelo.*;
+import com.multishop.modelo.*;
 
+ 
 
 
 public class RequestAddCart {

@@ -55,78 +55,7 @@
 		<br>
 	</div>
 
-	<!--Modal para login-->
-
-	<div class="modal" id="loginAutenticar" data-backdrop="static" data-keyboard="false" tabindex="-1">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" onclick="cerrarModal('loginAutenticar'); return false"
-						aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-
-				<!-- Modal body -->
-				<div class="modal-body">
-
-
-					<span style="display:none;"><input type="hidden" name="_frm" value="frmLogin"></span>
-					<div class="fld-grp">
-						<div class="fld"><label class="lbl"><b>Correo
-									electrónico</b> </label><input type="email" value="algo@algo.com" id="txtEmail"
-								class="v_required v_email" autocomplete="off" required=""></div>
-						<div class="fld"><label class="lbl"><b>Contraseña</b> </label><input type="password"
-								value="admin" id="txtPassword" class="v_required" autocomplete="off" required="">
-						</div>
-						<div class="fld">
-							<div class="lbl"><label class="toggleButton"><input type="checkbox" value="1"
-										name="chxRecordarme" class="checkbox" checked=""><b>Recordarme en
-										este
-										equipo.</b></label></div>
-						</div>
-					</div>
-					<div class="actions">
-						<button class="btn btn01 btnIngresar" onclick="login()">INGRESAR</button>
-						<a href="/recuperar-contrasena" class="btnOlvideContrasena">Olvidé mi
-							contraseña</a>
-						<div class="opcion">No soy usuario registrado y quiero <a href="/crear-cuenta"
-								class="btnCrearCuenta">crear
-								una cuenta</a>.</div>
-					</div>
-
-					<br>
-					<br>
-					<br>
-
-					<div class="blk" id="blkLoginOpciones">
-
-						<div class="cnt">
-							<a href="https://accounts.google.com/o/oauth2/auth?response_type=code&amp;redirect_uri=https%3A%2F%2Fwoofer.com.uy%2Flogin-con-google&amp;client_id=48986540989-b7soiv5qlmsdijbp689o0g0stjeusd51.apps.googleusercontent.com&amp;scope=email+profile&amp;access_type=online&amp;approval_prompt=auto"
-								class="btn btnLoginGoogle"><span class="ico"></span><i class="bi bi-google"></i><span
-									class="txt">INGRESAR CON GOOGLE</span></a>
-
-							<a href="javascript:;" onclick="usuarios.showPPObtenerPIN()" class="btn btn02 btnLoginPIN">
-								<!--  <span class="ico">&#59392;</span> -->
-								<span class="txt">Ingresar sin contraseña</span>
-							</a>
-						</div>
-					</div>
-
-
-					<!-- Modal footer -->
-					<div class="modal-footer">
-
-					</div>
-
-
-				</div>
-			</div>
-
-
-		</div>
-	</div>
-	<!--End-->
+	
 
 	<!-- Footer Start -->
 	<div class="container-fluid bg-dark text-secondary mt-5 pt-5">
@@ -203,32 +132,16 @@
 		</div>
 	</div>
 	<!-- Footer End -->
+ <div th:replace="template :: footerTemplate"></div>
+   		<div th:replace="template :: loadingTemplate"></div>
+   		<div th:replace="template :: loginTemplate"></div>
+   		
 
 
-	<!-- Back to Top -->
-	<a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
-
-	<!-- JavaScript Libraries -->
-	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-	<script src="lib/easing/easing.min.js"></script>
-	<script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
-	<!-- Contact Javascript File -->
-	<script src="mail/jqBootstrapValidation.min.js"></script>
-	<script src="mail/contact.js"></script>
-
-	<script src="js/callPage.js"></script>
-	<script type="text/javascript" src="js/funciones.js"></script>
-
-	<script type="text/javascript" src="js/index.js"></script>
-
-	<script type="text/javascript" src="js/login.js"></script>
-
-	<script type="text/javascript" src="js/cart.js"></script>
-	<!-- Template Javascript -->
-	<script src="js/main.js"></script>
+<div th:replace="template :: javaScriptTemplate"></div>
 
 
 </body>

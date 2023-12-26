@@ -20,17 +20,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.online.multishop.modelo.*;
-import com.online.multishop.modelo.ResponseResultado;
-import com.online.multishop.vo.*;
 import com.ayalait.fecha.FormatearFechas;
 import com.ayalait.logguerclass.Notification;
+import com.ayalait.modelo.*;
+import com.ayalait.response.*;
+import com.ayalait.response.ResponseResultado;
+import com.ayalait.utils.ErrorState;
 import com.ayalait.utils.MessageCodeImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.multishop.modelo.DptoPais;
+import com.multishop.modelo.ShoppingHistoryEstado;
+import com.multishop.response.*;
+import com.online.multishop.vo.RequestAddCart;
 
 
 @Service
@@ -38,8 +43,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 	public static String rutaDowloadProducto;
 	private String hostStock;
+	private String hostReursosHumanos;
+	public int codigoPais=2;
 	public static String logger;
-	private boolean desarrollo = false;
+	private boolean desarrollo = true;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	@Autowired
@@ -58,7 +65,9 @@ public class ParametrosServiceImpl implements ParametrosService {
 				propertiesStream.close();
 				this.hostStock = p.getProperty("server.stock");
 				this.logger = p.getProperty("server.logger");
+				this.hostReursosHumanos= p.getProperty("server.rrhh");
 				this.rutaDowloadProducto = p.getProperty("server.uploaderProductos");
+				this.codigoPais=Integer.parseInt(p.getProperty("server.codigopais")) ;
 
 			}
 		} catch (FileNotFoundException var3) {
@@ -72,7 +81,8 @@ public class ParametrosServiceImpl implements ParametrosService {
 			if (desarrollo) {
 				hostStock = "http://localhost:8082";
 				logger = "http://localhost:8086";
-				rutaDowloadProducto = "C:\\xampp\\htdocs\\multishop\\img\\";
+				hostReursosHumanos="http://localhost:8085";
+				rutaDowloadProducto =System.getProperty("user.dir")+"\\src\\main\\resources\\static\\img\\";
 			} else {
 				cargarServer();
 			}
@@ -113,6 +123,45 @@ public class ParametrosServiceImpl implements ParametrosService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		return responseResult;
+
+	}
+	
+	@Cacheable(cacheNames = "dptoPais")
+	@Override
+	public ResponseListaDpto listadoDptoPais() {
+
+		ResponseListaDpto responseResult = new ResponseListaDpto();
+
+		try {
+
+			String url = ShoppingUsuariosServiceImpl.hostSeguridad + "/shopping/departamentos/buscar?pais="+codigoPais;
+			 
+			URI uri = new URI(url);
+			ResponseEntity<List<DptoPais>> response = restTemplate.exchange(uri , HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<DptoPais>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setDpto(response.getBody());
+ 
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			 
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 
 
 		return responseResult;
 
@@ -901,6 +950,42 @@ public class ParametrosServiceImpl implements ParametrosService {
 		
 		
 		
+	}
+
+	@Override
+	public ResponseListaTipoDoc listadoTipoDocumento() {
+		ResponseListaTipoDoc responseResult = new ResponseListaTipoDoc();
+ 
+		try {
+
+			String url = this.hostReursosHumanos + "/parametros/tipo-documento";
+			 
+			URI uri = new URI(url);
+			ResponseEntity<List<TipoDocumento>> response = restTemplate.exchange(uri , HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<TipoDocumento>>() {
+					});
+
+			if (response.getStatusCodeValue() == 200) {
+
+				responseResult.setStatus(true);
+				responseResult.setDocumento(response.getBody());
+ 
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			 
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 
+
+		return responseResult;
 	}
 
 }
