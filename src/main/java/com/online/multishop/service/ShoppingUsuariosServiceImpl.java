@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -48,7 +47,6 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
-	private boolean desarrollo = false;
 
 	void cargarServer() throws IOException {
 		Properties p = new Properties();
@@ -73,7 +71,7 @@ public class ShoppingUsuariosServiceImpl implements ShoppingUsuariosService {
 
 	public ShoppingUsuariosServiceImpl() {
 		try {
-			if (desarrollo) {
+			if (ParametrosServiceImpl.desarrollo) {
 				hostSeguridad = "http://localhost:7001";
 				hostMail="http://localhost:7002";
 			} else {
@@ -790,6 +788,56 @@ public ResponseUsuarioShopping obtenerDatosUsuarioLoginV2(String token, String m
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return responseResult;
+	}
+
+	@Override
+	public ResponseResultado eliminarCuenta(String id, String token) {
+		ResponseResultado responseResult = new ResponseResultado();
+
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String url = this.hostSeguridad + "/shopping/usuario/delete?id="+id;
+			URI uri = new URI(url);
+			headers.set("Authorization", "Bearer "+token);
+			HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
+		
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.DELETE, requestEntity,
+					String.class);
+
+			if (response.getStatusCodeValue() == 200) {
+				responseResult.setCode(response.getStatusCodeValue());
+				responseResult.setStatus(true);
+				responseResult.setResultado(response.getBody());
+				
+			}
+
+		} catch (org.springframework.web.client.HttpServerErrorException e) {
+			ErrorState data = new ErrorState();
+			data.setCode(e.getStatusCode().value());
+			data.setMenssage(e.getMessage());
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+			
+		
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (org.springframework.web.client.HttpClientErrorException e) {
+			JsonParser jsonParser = new JsonParser();
+			int in = e.getLocalizedMessage().indexOf("{");
+			int in2 = e.getLocalizedMessage().indexOf("}");
+			String cadena = e.getMessage().substring(in, in2+1);
+			JsonObject myJson = (JsonObject) jsonParser.parse(cadena);
+			responseResult.setCode(myJson.get("code").getAsInt());
+			ErrorState data = new ErrorState();
+			data.setCode(myJson.get("code").getAsInt());
+			data.setMenssage(MessageCodeImpl.getMensajeServiceUsuarios(myJson.get("code").getAsString() ));
+			responseResult.setCode(data.getCode());
+			responseResult.setError(data);
+		}
+		 
 		
 		return responseResult;
 	}

@@ -30,6 +30,9 @@ public interface ShoppingUsuariosService {
 	ResponseDirecciones recuperarDreccionUsuarioPorId(String idUsuario, String token);
 
 	ResponseResultado eliminarDreccionUsuarioPorId(int id, String token);
+	
+	ResponseResultado eliminarCuenta(String id, String token);
+
 
 	ResponseResultado guardarLog(Notification noti);
 

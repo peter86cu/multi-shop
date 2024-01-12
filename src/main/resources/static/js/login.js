@@ -126,11 +126,28 @@ function mensajeOK(mensaje) {
 	});
 }
 
+function mensajeDeleteAcount(mensaje) {
+	Swal.fire({
+		text: mensaje,
+		//type: "success",
+		icon: "success",
+		showCancelButton: false,
+		confirmButtonText: "OK",
+		cancelButtonText: "No",
+		confirmButtonColor: "#3085d6",
+		cancelButtonColor: "#d33",
+	}).then((result) => {
+		if (result.value) {
+			salir()
+		}
+	});
+}
 
 
-function validarPassword(event, objeto) {
+
+function validarPassword(event, objeto,accion) {
 	const input = document.getElementById(objeto);
-	input.addEventListener("change", valPasswords(objeto));
+	input.addEventListener("change", valPasswords(objeto,accion));
 
 	/*$(document).ready(function() {
 		$(document).on('change', '#' + objeto, function() {
@@ -152,7 +169,7 @@ function validarPassword(event, objeto) {
 	})*/
 }
 
-function valPasswords(objeto) {
+function valPasswords(objeto,accion) {
 	var pass = $('#password').val();
 
 	if ($('#' + objeto).val().trim() != "") {
@@ -167,7 +184,9 @@ function valPasswords(objeto) {
 		$('#' + objeto).addClass('is-invalid');
 		$('#password').addClass('is-invalid');
 	}
-	if (validarCampos())
+	if (validarCampos() && accion=="registrar")
+		$('#btnRegistrar').prop('disabled', false);
+	if(validarCamposUpdate() && accion=="actualizar")
 		$('#btnRegistrar').prop('disabled', false);
 }
 
@@ -190,6 +209,40 @@ function regitrarUsuario() {
 	datos.append("password", password);
 	$.ajax({
 		url: URLLOCAL + "add-new-user",
+		method: "POST",
+		data: datos,
+		chache: false,
+		contentType: false,
+		processData: false,
+		dataType: "json",
+		success: function(respuesta) {
+			var response = JSON.stringify(respuesta, null, '\t');
+			var data = JSON.parse(response);
+			if (data.status) {
+				mensajeOK(data.resultado);
+			}else{
+				mensajeErrorGenerico(data.error.menssage);
+			}
+		}
+	})
+}
+
+function actualizarUsuario() {
+	var nombre = $('#nombre').val();	
+	var email = $("#email").val()
+	var telefono = $("#telefono").val()	
+	var password = $("#password").val()
+    var id = $("#idUser").val()  
+  
+    
+	var datos = new FormData();
+	datos.append("id", id);
+	datos.append("nombre", nombre);
+	datos.append("email", email);
+	datos.append("telefono", telefono);
+	datos.append("password", password);
+	$.ajax({
+		url: URLLOCAL + "update-user",
 		method: "POST",
 		data: datos,
 		chache: false,
@@ -274,3 +327,58 @@ function validarCampos() {
 	return validar;
 
 }
+
+function validarCamposUpdate() {
+	var validar = true;
+
+	if ($("#nombre").val() == "") {
+		//$('#nombre').addClass('is-invalid');
+		validar = false;	
+	} if ($("#email").val() == "") {
+		//$('#email').addClass('is-invalid');
+		validar = false;
+	} if ($("#telefono").val() == "") {
+		//$('#telefono').addClass('is-invalid');
+	
+	} if ($("#password").val() == "") {
+		//$('#password').addClass('is-invalid');
+		validar = false;
+	} if ($("#passwordConfir").val() == "") {
+		//$('#passwordConf').addClass('is-invalid');
+		validar = false;
+	} if (!isEqual($("#password").val(), $("#passwordConfir").val())) {
+		validar = false;
+	}
+
+
+	return validar;
+
+}
+
+function deleteAcount() {
+	var id = $("#idUser").val()  
+  
+    
+	var datos = new FormData();
+	datos.append("idUsuario", id);
+	$.ajax({
+		url: URLLOCAL + "delete-acount",
+		method: "POST",
+		data: datos,
+		chache: false,
+		contentType: false,
+		processData: false,
+		dataType: "json",
+		success: function(respuesta) {
+			var response = JSON.stringify(respuesta, null, "\t");
+			var data = JSON.parse(response);
+			
+			if (data.status) {
+				mensajeDeleteAcount(data.resultado)
+			}else{
+				mensajeErrorGenerico(data.error.menssage);
+			}
+		},
+	});
+}
+

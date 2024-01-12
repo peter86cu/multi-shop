@@ -46,7 +46,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 	private String hostReursosHumanos;
 	public int codigoPais=2;
 	public static String logger;
-	private boolean desarrollo = false;
+	public static boolean desarrollo;
 	ObjectWriter ow = (new ObjectMapper()).writer().withDefaultPrettyPrinter();
 
 	@Autowired
@@ -68,6 +68,7 @@ public class ParametrosServiceImpl implements ParametrosService {
 				this.hostReursosHumanos= p.getProperty("server.rrhh");
 				this.rutaDowloadProducto = p.getProperty("server.uploaderProductos");
 				this.codigoPais=Integer.parseInt(p.getProperty("server.codigopais")) ;
+				this.desarrollo= Boolean.parseBoolean(p.getProperty("server.desarrollo"));
 
 			}
 		} catch (FileNotFoundException var3) {
@@ -76,20 +77,37 @@ public class ParametrosServiceImpl implements ParametrosService {
 
 	}
 
-	public ParametrosServiceImpl() {
+	public ParametrosServiceImpl() throws IOException {
+		
+		Properties p = new Properties();
+
 		try {
+			URL url = this.getClass().getClassLoader().getResource("application.properties");
+			if (url == null) {
+				throw new IllegalArgumentException("application.properties" + " is not found 1");
+			} else {
+				InputStream propertiesStream = url.openStream();
+				p.load(propertiesStream);
+				propertiesStream.close();
+				this.hostStock = p.getProperty("server.stock");
+				this.logger = p.getProperty("server.logger");
+				this.hostReursosHumanos= p.getProperty("server.rrhh");
+				this.rutaDowloadProducto = p.getProperty("server.uploaderProductos");
+				this.codigoPais=Integer.parseInt(p.getProperty("server.codigopais")) ;
+				this.desarrollo= Boolean.parseBoolean(p.getProperty("server.desarrollo"));
+
+			}
+			
 			if (desarrollo) {
 				hostStock = "http://localhost:8082";
 				logger = "http://localhost:8086";
 				hostReursosHumanos="http://localhost:8085";
 				rutaDowloadProducto =System.getProperty("user.dir")+"\\src\\main\\resources\\static\\img\\";
-			} else {
-				cargarServer();
 			}
-		} catch (IOException var2) {
-			System.err.println(var2.getMessage());
+			
+		} catch (FileNotFoundException var3) {
+			System.err.println(var3.getMessage());
 		}
-
 	}
 
 	@Override

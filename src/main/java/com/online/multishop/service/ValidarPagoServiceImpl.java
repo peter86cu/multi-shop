@@ -77,7 +77,7 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 
 	public ValidarPagoServiceImpl() {
 		try {
-			if (desarrollo) {
+			if (ParametrosServiceImpl.desarrollo) {
 				rutaDowloadProducto = "C:\\xampp\\htdocs\\multishop\\img\\";
 				hostStock = "http://localhost:8082";
 				dlocalGo = "https://api-sbx.dlocalgo.com/v1/payments/";

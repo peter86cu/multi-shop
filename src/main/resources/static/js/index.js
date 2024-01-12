@@ -1,6 +1,6 @@
 var URL = "http://localhost:8090/";
-//var URLLOCAL = "http://localhost:8080/";
-var URLLOCAL = "https://tienda-online.web.elasticloud.uy/";
+var URLLOCAL = "http://localhost:8080/";
+//var URLLOCAL = "https://tienda-online.web.elasticloud.uy/";
 
 
 
@@ -258,11 +258,29 @@ function chequearCartMultiShop() {
 function validarSession(){
  if($("#sessionId").val()!=sessionStorage.getItem("sessionId")){
  limpiarSession()
+ //mensajeSession("Sessión caducada. Autentiquese de nuevo")
+ //window.location.href = "index";
  }
 
 }
 
-
+function mensajeSession(mensaje) {
+  Swal.fire({
+      text: mensaje,
+      //type: 'warning',
+      icon: "warning",
+      showCancelButton: false,
+      confirmButtonText: 'OK',
+      cancelButtonText: "No",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+  }).then((result) => {
+      if (result.value) {
+         return true;
+      }
+      return false;
+  })
+}
 
 	var x = $('#search').val();
 
