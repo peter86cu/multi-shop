@@ -232,10 +232,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 
@@ -289,10 +289,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 	}
@@ -346,10 +346,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 
@@ -404,10 +404,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 
@@ -460,10 +460,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 
@@ -517,10 +517,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 		
@@ -560,10 +560,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 				responseResult.setCode(data.getCode());
 				responseResult.setError(data);
 				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-				ResponseResultado result = guardarLog(noti);
+				/*ResponseResultado result = guardarLog(noti);
 				if (!result.isStatus()) {
 					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-				}
+				}*/
 
 				return responseResult;	
 			}
@@ -597,10 +597,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;		
 		
@@ -638,10 +638,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 				responseResult.setCode(data.getCode());
 				responseResult.setError(data);
 				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-				ResponseResultado result = guardarLog(noti);
+				/*ResponseResultado result = guardarLog(noti);
 				if (!result.isStatus()) {
 					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-				}
+				}*/
 
 				return responseResult;
 			}catch (org.springframework.web.client.HttpServerErrorException e) {
@@ -657,10 +657,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 					e1.printStackTrace();
 				}
 				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-				ResponseResultado result = guardarLog(noti);
+				/*ResponseResultado result = guardarLog(noti);
 				if (!result.isStatus()) {
 					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-				}
+				}*/
 
 				return responseResult;	
 			}
@@ -688,10 +688,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			}
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;	
 		
@@ -747,10 +747,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 
@@ -826,10 +826,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 		
@@ -871,10 +871,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 					e1.printStackTrace();
 				}
 				noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-				ResponseResultado result = guardarLog(noti);
+				/*ResponseResultado result = guardarLog(noti);
 				if (!result.isStatus()) {
 					System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-				}
+				}*/
 
 				return responseResult;
 			}
@@ -903,10 +903,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			}
 		} 
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 		
@@ -959,10 +959,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 			e.printStackTrace();
 		}
 		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
-		ResponseResultado result = guardarLog(noti);
+		/*ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;	
 		
