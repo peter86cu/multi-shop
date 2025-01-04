@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="template :: html_head"></head>
+
+<body>
+	<!-- loader 
+<div class="loader_bg" id="cargando">
+    <div class="loader"><img src="img/loading.gif" alt="#" /></div>
+ </div>
+ end loader -->
+
+	<!-- Topbar Start -->
+	<div th:replace="template :: header"></div>
+	<!-- Navbar Start -->
+
+	<div th:replace="template :: menu"></div>
+	<!-- Navbar End -->
+
+	<!-- Breadcrumb Start -->
+	<div class="container-fluid">
+		<div class="row px-xl-5">
+			<div class="col-12">
+				<nav class="breadcrumb bg-light mb-30">
+					<a class="breadcrumb-item text-dark" href="#">Inicio</a> <span
+						class="breadcrumb-item active">Mis compras</span>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<!-- Breadcrumb End -->
+
+
+	<!-- Contact Start -->
+	<div class="container-fluid">
+		<h2
+			class="section-title position-relative text-uppercase mx-xl-5 mb-4">
+			<span class="bg-secondary pr-3">Mis compras</span>
+		</h2>
+		<div align="right" class="form-group">
+			<input type="text" class="form-control pull-right"
+				style="width: 20%;" id="search"
+				placeholder="Type to search table...">
+		</div>
+
+		<div class="card-block">
+			<table class="table table-bordered table-striped" id="compras">
+				<thead>
+					<tr style="background: #3d4242">
+						<th>ID ORDEN</th>
+						<th>ID PAGO</th>
+						<th>FECHA CREADO</th>
+						<th>FECHA PAGO</th>
+						<th>CANTIDAD</th>
+						<th>MONEDA PAGO</th>
+						<th>I.V.A</th>
+						<th>MONTO</th>
+						<th>ESTADO</th>
+						<th>ACCIÓN</th>
+					</tr>
+				</thead>
+				<tbody id="list-comp-user">
+
+					<tr th:each="lst :${comprasUsuarios}">
+						<td th:text="${lst.idorden}"></td>
+						<td th:text="${lst.idpago}"></td>
+						<td></td>
+						<td th:text="${lst.fecha_pago}"></td>
+						<td></td>
+						<td th:text="${lst.monedapago}"></td>
+						<td th:text="${lst.iva}"></td>
+						<td th:text="${lst.montopagado}"></td>
+						<td th:text="${lst.state}"></td>
+						<td><button class="btn btn-primary " th:onclick=""
+								style="color: #000000; background-color: #66CDAA; border-color: #20B2AA">
+								<i class="far fa-edit"></i>
+							</button>
+							<button class="btn btn-default btnEliminarOrden" th:onclick=""
+								style="color: #fff; background-color: #8B0000; border-color: #800000">
+								<i class="fas fa-trash"></i>
+							</button></td>
+
+					</tr>
+				</tbody>
+			</table>
+
+
+		</div>
+
+
+	</div>
+	<!-- Contact End -->
+	<style>
+a.active.bot {
+	background-color: #4CAF50;
+	color: white;
+	border-radius: 5px;
+}
+
+div.nav {
+	display: inline-block;
+	padding: 0;
+	margin: 0;
+}
+
+.nav.a {
+	display: inline;
+}
+
+a.bot {
+	color: black;
+	float: left;
+	padding: 8px 16px;
+	text-decoration: none;
+	border-radius: 5px;
+}
+</style>
+
+	<div th:replace="template :: footerTemplate"></div>
+	<div th:replace="template :: loadingTemplate"></div>
+	<div th:replace="template :: loginTemplate"></div>
+
+
+
+	<!-- Back to Top -->
+	<a href="#" class="btn btn-primary back-to-top"><i
+		class="fa fa-angle-double-up"></i></a>
+
+<div th:replace="template :: javaScriptTemplate"></div>
+
+	<script type="text/javascript" src="js/pago.js"></script>
+
+</body>
+
+</html>

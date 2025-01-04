@@ -1,0 +1,254 @@
+        .fld>.lbl::after {
+            content: "";
+            overflow: hidden;
+            display: block;
+            height: 0;
+            clear: both
+        }
+
+        .fld>.lbl::after {
+            content: "";
+            overflow: hidden;
+            display: block;
+            height: 0;
+            clear: both
+        }
+
+        .fld>.lbl>b {
+            font-weight: normal;
+            color: #000000;
+            font-weight: bold;
+            display: block;
+            line-height: 20px;
+            padding: 10px 0 5px 5px
+        }
+
+        .fld-grp>*,
+        .fld {
+            margin-bottom: 10px;
+            font-size: 12px;
+            line-height: 20px
+        }
+
+        label.toggleButton {
+            position: relative;
+            padding: 10px 0 10px 28px;
+            display: inline-block;
+            margin-right: 20px
+        }
+
+        label.toggleButton>input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        label.toggleButton>input+b {
+            line-height: 20px;
+            font-weight: normal
+        }
+
+        label.toggleButton>input+b:before {
+            cursor: pointer;
+            border: 1px solid #ededed;
+            border-radius: 2px;
+            content: '';
+            display: block;
+            float: left;
+            width: 20px;
+            height: 20px;
+            margin-left: -28px;
+            background-color: #ffffff
+        }
+
+        label.toggleButton>input+b:hover:before {
+            background-color: #ffffff
+        }
+
+        label.toggleButton>input[type=radio]+b:before {
+            border-radius: 100%
+        }
+
+        label.toggleButton>input[type=radio]:checked+b:before {
+            box-shadow: 0 0 0 4px #ffffff inset, 0 0 0 10px #fcb831 inset
+        }
+
+        label.toggleButton>input[type=checkbox]:checked+b:before {
+            content: '\e80C';
+            color: #fcb831;
+            font-family: "FIconos";
+            text-align: center;
+            line-height: 18px;
+            font-size: 15px
+        }
+
+        .actions {
+            margin-top: 30px
+        }
+
+        .actions>.btn+.btn {
+            margin-left: 10px
+        }
+
+        .btn01 {
+            background: #fcb831
+        }
+
+        .btn01:hover,
+        .btn01:focus {
+            background: #ffcc45
+        }
+
+        .btn01,
+        .btn02,
+        .btn03,
+        .btn04,
+        .btnInputFile {
+            padding: 0 25px;
+            font-weight: 400;
+            border-radius: 3px;
+            color: #ffffff;
+            line-height: 40px;
+            font-size: 20px;
+        }
+
+        .actions>.btn01 {
+            display: block;
+            width: 100%
+        }
+
+        .actions>.btnOlvideContrasena {
+            display: inline-block;
+            margin-top: 20px;
+            line-height: 15px;
+            font-size: 20px
+        }
+
+        .actions>.btnOlvideContrasena:hover {
+            color: #c8196e
+        }
+
+        .actions a {
+            text-decoration: underline;
+        }
+
+        a {
+            outline: 0 !important;
+            text-decoration: none;
+            color: #fcb831;
+        }
+
+        .lbl>input {
+            max-width: inherit;
+        }
+
+       
+        .toggleButton,.fld input:not([type="radio"]):not([type="file"]):not([type="checkbox"]) {
+            padding: 0 10px;
+        }
+
+        .toggleButton,.fld input:not([type="radio"]):not([type="file"]):not([type="checkbox"]) {
+            width: 100%;
+            font-family: "Poppins", sans-serif;
+            font-size: 13px;
+            line-height: 20px;
+            height: 40px;
+            border-radius: 3px;
+            border: 1px solid #ededed;
+            box-sizing: border-box;
+            background: #ffffff;
+        }
+
+        .fld-grp>*,
+        .fld {
+            margin-bottom: 10px;
+            font-size: 18px;
+            line-height: 20px;
+        }
+
+        #blkLoginOpciones>.cnt .btn {
+    display: block;
+    margin-bottom: 20px
+}
+
+#blkLoginOpciones>.cnt .btn {
+    display: block;
+    margin-bottom: 20px;
+}
+
+
+.btnInputFile[data-disabled=on] {
+    background: #cccccc;
+    color: #ffffff;
+    pointer-events: none
+}
+
+.btnLoginFacebook {
+    background: #3b4f92;
+    font-size: 13px;
+    padding: 0;
+    border-radius: 3px;
+    color: #ffffff;
+    margin-bottom: 20px
+}
+
+.btnLoginFacebook>.txt {
+    line-height: 40px;
+    vertical-align: middle
+}
+
+.btnLoginFacebook>.ico {
+    display: inline-block;
+    line-height: 40px;
+    font-size: 20px;
+    font-weight: normal;
+    margin-right: 15px;
+    vertical-align: middle
+}
+
+.btnLoginFacebook:hover {
+    background: #4f63a6
+}
+
+.btnLoginGoogle {
+    background: #dc4e41;
+    font-size: 20px;
+    padding: 0 20px;
+    border-radius: 3px;
+    color: #ffffff;
+    margin-bottom: 20px
+}
+
+.btnLoginGoogle>.txt {
+    line-height: 40px;
+    vertical-align: middle
+}
+
+.btnLoginGoogle>.ico {
+    display: inline-block;
+    line-height: 40px;
+    font-size: 20px;
+    font-weight: normal;
+    margin-right: 15px;
+    vertical-align: middle
+}
+
+.btnLoginGoogle:hover {
+    background: #f06255
+}
+
+.blk .btnLoginGoogle {
+    display: block
+}
+
+
+
+.cnt.btn {
+    white-space: nowrap;
+    text-transform: uppercase;
+    text-align: center;
+    font-family: "Poppins",sans-serif;
+    background: none;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+}

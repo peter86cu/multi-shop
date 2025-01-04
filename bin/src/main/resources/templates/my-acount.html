@@ -1,0 +1,115 @@
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="template :: html_head"></head>
+
+<body>
+
+	<!-- Topbar Start -->
+	<div th:replace="template :: header"></div>
+	<!-- Navbar Start -->
+
+	<div th:replace="template :: menu"></div>
+	<!-- Navbar End -->
+
+
+
+	<!-- Breadcrumb Start -->
+	<div class="container-fluid">
+		<div class="row px-xl-5">
+			<div class="col-12">
+				<nav class="breadcrumb bg-light mb-30">
+					<a class="breadcrumb-item text-dark" href="index">Inicio</a> <a
+						class="breadcrumb-item text-dark" href="register">Mi cuenta</a>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<!-- Breadcrumb End -->
+
+
+	<!-- Cart Start -->
+	<div class="container-fluid">
+		<div class="row px-xl-5">
+			<div class="col-lg-8 table-responsive mb-5">
+				<div class="bg-light p-30 mb-5">
+					<div class="row">
+						<div class="col-md-4 form-group">
+							<label>Nombre</label> <input id="nombre" class="form-control"
+								type="text" onchange="validarChange(this,'nombre')" th:value="${user.name}">
+						</div>
+					
+						<div class="col-md-4 form-group">
+							<label>E-mail</label> <input id="email" class="form-control"
+								type="text" onchange="validarChange(this,'email')" th:value="${user.email}">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>No. Télefono</label> <input id="telefono"
+								class="form-control" type="text"
+								onchange="validarChange(this,'telefono')" th:value="${user.phone}">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Tipo documento</label> <select class="custom-select"
+								id="tipo-doc-select"
+								onchange="validarChange(this,'tipo-doc-select')">
+								<spam th:each="doc :${tipoDocumento}"> 
+								<option selected disabled th:value="${user.document_type}"
+									th:if="${doc.id}==${user.document_type}" th:text="${doc.tipo}"></option>
+									<option  th:value="${doc.id}"
+									th:if="${doc.id}!=${user.document_type}" th:text="${doc.tipo}" disabled></option>
+								</spam>																
+								
+							</select>
+						</div>
+						<div class="col-md-3 form-group">
+							<label>Documento</label> <input id="documento"
+								class="form-control" type="text"
+								onchange="validarChange(this,'documento')" th:value="${user.document}" disabled>
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Password</label> <input id="password" class="form-control"
+								type="password" onchange="validarChange(this,'password')">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>Confirmar Password</label> <input id="passwordConfir"
+								class="form-control" type="password"
+								onchange="validarPassword(this,'passwordConfir','actualizar')">
+						</div>
+
+						<div class="col-md-10 form-group">
+							<br>
+							<div class="custom-control custom-checkbox">
+								<button class="btn btn-primary" id="btnRegistrar" disabled
+									onclick="actualizarUsuario()">Editar</button>
+								<button class="btn btn-default" style="color: #fff; background-color: #8B0000; border-color: #800000" onclick="deleteAcount()">
+								<i class="fas fa-trash"></i>Eliminar Cuenta</button>
+								
+							</div>
+<input type="hidden" id="idUser" name="idUser"
+			th:value="${user.id}">
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<!-- Cart End -->
+
+
+	<div th:replace="template :: footerTemplate"></div>
+	<div th:replace="template :: loadingTemplate"></div>
+	<div th:replace="template :: loginTemplate"></div>
+
+
+
+	<!-- Back to Top -->
+	<a href="#" class="btn btn-primary back-to-top"><i
+		class="fa fa-angle-double-up"></i></a>
+
+<div th:replace="template :: javaScriptTemplate"></div>
+
+
+</body>
+
+</html>
