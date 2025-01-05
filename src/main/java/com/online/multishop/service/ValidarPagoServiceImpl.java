@@ -315,11 +315,11 @@ public class ValidarPagoServiceImpl implements ValidarPagoService {
 		
 		
 		
-		noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
+		/*noti.setFecha_fin(FormatearFechas.obtenerFechaPorFormato("yyyy-MM-dd hh:mm:ss"));
 		ResponseResultado result = guardarLog(noti);
 		if (!result.isStatus()) {
 			System.err.println(result.getError().getCode() + " " + result.getError().getMenssage());
-		}
+		}*/
 
 		return responseResult;
 		
