@@ -836,6 +836,10 @@ public class ParametrosServiceImpl implements ParametrosService {
 		
 		
 	}
+	
+	
+	
+	
 
 	@Override
 	public ResponseCartUsuario obtenerCarritoPorUsuario(String idUsuario) {
