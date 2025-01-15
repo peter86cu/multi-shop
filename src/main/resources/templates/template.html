@@ -33,7 +33,7 @@
 <link href="css/style-new.css" rel="stylesheet">
 
 <!-- JavaScript Libraries -->
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -52,12 +52,21 @@
 <script
 	src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.7/uuid.min.js"></script>
 
+
+
+
+
+
 <link rel="stylesheet"
 		href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/js/select2.min.js"></script>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/css/select2.min.css" rel="stylesheet" />
 
 
+
+<!-- Tu archivo CSS personalizado -->
+<link href="css/style.css" rel="stylesheet">
+<link href="css/style-new.css" rel="stylesheet">
 </head>
 <script>
 	
@@ -83,11 +92,10 @@
 						<div class="input-group">
 							<!--  <input type="text" class="form-control"
 								placeholder="Search for products">-->
-								<select class="search custom-select" id="search"
-														name="search"
-														onchange="selectProductoGlobal(this);">
-														<option disabled value="0">Buscar products</option>
-													</select>
+							<select class="search custom-select" id="search" name="search"
+								onchange="selectProductoGlobal(this);">
+								<option disabled value="0">Buscar products</option>
+							</select>
 							<div class="input-group-append">
 								<span class="input-group-text bg-transparent text-primary">
 									<i class="fa fa-search"></i>
@@ -121,7 +129,7 @@
 				<div class="col-lg-3 d-none d-lg-block">
 					<a
 						class="btn d-flex align-items-center justify-content-between bg-primary w-100"
-						data-toggle="collapse" href="#navbar-vertical"
+						data-bs-toggle="collapse" href="#navbar-vertical"
 						style="height: 65px; padding: 0 30px;">
 						<h6 class="text-dark m-0">
 							<i class="fa fa-bars mr-2"></i>Categorias
@@ -148,7 +156,7 @@
 							class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Shop</span>
 						</a>
 						<button type="button" class="navbar-toggler"
-							data-toggle="collapse" data-target="#navbarCollapse">
+							data-bs-toggle="collapse" data-target="#navbarCollapse">
 							<span class="navbar-toggler-icon"></span>
 						</button>
 						<div class="collapse navbar-collapse justify-content-between"
@@ -157,7 +165,7 @@
 								<a href="index" class="nav-item nav-link active">Inicio</a>
 								<div class="nav-item dropdown">
 									<a href="#" class="nav-link dropdown-toggle"
-										data-toggle="dropdown">Productos <i
+										data-bs-toggle="dropdown">Productos <i
 										class="fa fa-angle-down mt-1"></i></a>
 
 									<div class="dropdown-menu bg-primary rounded-0 border-0 m-0">
@@ -173,17 +181,50 @@
 								<a href="contact.html" class="nav-item nav-link">Ofertas</a> <a
 									href="contact.html" class="nav-item nav-link">Contact</a>
 							</div>
-							<!-- Para login de la cuenta-->
+							<!-- Para login de la cuenta -->
 							<div th:if="${user.name}=='Invitado'" class="nav-item dropdown">
-								<a id="mi-cuenta-sin-login"
-									href="javaScript:abrirModal('loginAutenticar')"
-									class="nav-link dropdown-toggle active"><i
-									class="fa-solid fa-user"></i> MI CUENTA </a>
+								<a id="mi-cuenta-sin-login" href="#"
+									class="nav-link dropdown-toggle active" role="button"
+									data-bs-toggle="dropdown" aria-expanded="false"> <i
+									class="fa-solid fa-user"></i> MI CUENTA
+								</a>
+								<div class="dropdown-menu p-4" style="min-width: 300px;">
+									<form id="loginForm">
+										<!-- Correo Electrónico -->
+										<div class="mb-3">
+											<label for="emailInput" class="form-label"><b>Correo
+													Electrónico</b></label> <input type="email" class="form-control"
+												id="emailInput" placeholder="Ingrese su correo" required>
+										</div>
+
+										<!-- Contraseña -->
+										<div class="mb-3">
+											<label for="passwordInput" class="form-label"><b>Contraseña</b></label>
+											<input type="password" class="form-control"
+												id="passwordInput" placeholder="Ingrese su contraseña"
+												required>
+										</div>
+
+										<!-- Botón Ingresar -->
+										<button type="button" class="btn btn-danger w-100"
+											onclick="login()">Ingresar</button>
+
+										<!-- Enlace registro -->
+										<div class="text-center mt-3">
+											<small>Si aún no tenés usuario, <a
+												href="/crear-cuenta" class="text-danger">registrate aquí</a>.
+											</small>
+										</div>
+									</form>
+								</div>
 							</div>
+
 							<div th:if="${user.name}!='Invitado'" class="nav-item dropdown">
 								<a href="#" class="nav-link dropdown-toggle active"
-									data-toggle="dropdown"><i class="fa-solid fa-user"></i><span
-									th:text="${user.name}"></span><i class="fa fa-angle-down mt-1"></i></a>
+									role="button" data-bs-toggle="dropdown" aria-expanded="false">
+									<i class="fa-solid fa-user"></i> <span th:text="${user.name}"></span>
+									<i class="fa fa-angle-down mt-1"></i>
+								</a>
 								<div class="dropdown-menu bg-primary rounded-0 border-0 m-0">
 									<a href="my-acount" class="dropdown-item">Mi cuenta</a> <a
 										href="javaScript:"
@@ -191,7 +232,6 @@
 										class="dropdown-item">Mis compras</a> <a href="checkout.html"
 										class="dropdown-item">Mis direcciones</a> <a
 										href="javaScript:" onclick="salir()" class="dropdown-item">Salir</a>
-
 								</div>
 							</div>
 
@@ -208,6 +248,8 @@
 									style="padding-bottom: 2px;">0</span>
 								</a>
 							</div>
+
+
 						</div>
 					</nav>
 				</div>
@@ -226,79 +268,81 @@
 
 	<!--Modal para login-->
 
-	<div class="modal" id="loginAutenticar" data-backdrop="static"
-		data-keyboard="false" tabindex="-1">
-		<div class="modal-dialog">
+	<!-- Modal Login -->
+	<div class="modal fade" id="loginAutenticar" data-backdrop="static"
+		data-keyboard="false" tabindex="-1" aria-labelledby="loginModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header">
-					<button type="button" class="close"
-						onclick="cerrarModal('loginAutenticar'); return false"
-						aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
+					<h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
 				</div>
 
 				<!-- Modal body -->
 				<div class="modal-body">
+					<form id="loginForm">
+						<input type="hidden" name="_frm" value="frmLogin">
 
+						<!-- Correo electrónico -->
+						<div class="mb-3">
+							<label for="txtEmail" class="form-label"><b>Correo
+									electrónico</b></label> <input type="email" class="form-control"
+								id="txtEmail" placeholder="Ingrese su correo" autocomplete="off"
+								required>
+						</div>
 
-					<span style="display: none;"><input type="hidden"
-						name="_frm" value="frmLogin"></span>
-					<div class="fld-grp">
-						<div class="fld">
-							<label class="lbl"><b>Correo electrónico</b> </label><input
-								type="email" value="algo@algo.com" id="txtEmail"
-								class="v_required v_email" autocomplete="off" required="">
+						<!-- Contraseña -->
+						<div class="mb-3">
+							<label for="txtPassword" class="form-label"><b>Contraseña</b></label>
+							<input type="password" class="form-control" id="txtPassword"
+								placeholder="Ingrese su contraseña" autocomplete="off" required>
 						</div>
-						<div class="fld">
-							<label class="lbl"><b>Contraseña</b> </label><input
-								type="password" value="admin" id="txtPassword"
-								class="v_required" autocomplete="off" required="">
+
+						<!-- Recordarme -->
+						<div class="form-check mb-3">
+							<input class="form-check-input" type="checkbox"
+								id="chxRecordarme" checked> <label
+								class="form-check-label" for="chxRecordarme"> Recordarme
+								en este equipo </label>
 						</div>
-						<div class="fld">
-							<div class="lbl">
-								<label class="toggleButton"><input type="checkbox"
-									value="1" name="chxRecordarme" class="checkbox" checked=""><b>Recordarme
-										en este equipo.</b></label>
+
+						<!-- Botón Ingresar -->
+						<div class="d-grid">
+							<button id="btnIngresar" class="btn btn-warning btn-block"
+								type="button" onclick="login()">INGRESAR</button>
+
+						</div>
+
+						<!-- Opciones adicionales -->
+						<div class="text-center mt-3">
+							<a href="/recuperar-contrasena" class="link-secondary">Olvidé
+								mi contraseña</a>
+							<div class="mt-2">
+								No soy usuario registrado y quiero <a href="/crear-cuenta"
+									class="link-primary">crear una cuenta</a>.
 							</div>
 						</div>
-					</div>
-					<div class="actions">
-						<button class="btn btn01 btnIngresar" onclick="login()">INGRESAR</button>
-						<a href="/recuperar-contrasena" class="btnOlvideContrasena">Olvidé
-							mi contraseña</a>
-						<div class="opcion">
-							No soy usuario registrado y quiero <a href="/crear-cuenta"
-								class="btnCrearCuenta">crear una cuenta</a>.
+
+						<!-- Opciones de ingreso -->
+						<div class="mt-4 text-center">
+							<button type="button" class="btn btn-outline-danger w-100 mb-2">
+								<i class="bi bi-google"></i> Ingresar con Google
+							</button>
+							<button type="button" class="btn btn-outline-secondary w-100"
+								onclick="usuarios.showPPObtenerPIN()">Ingresar sin
+								contraseña</button>
 						</div>
-					</div>
+					</form>
+				</div>
 
-					<br> <br> <br>
-
-					<div class="blk" id="blkLoginOpciones">
-
-						<div class="cnt">
-							<a
-								href="https://accounts.google.com/o/oauth2/auth?response_type=code&amp;redirect_uri=https%3A%2F%2Fwoofer.com.uy%2Flogin-con-google&amp;client_id=48986540989-b7soiv5qlmsdijbp689o0g0stjeusd51.apps.googleusercontent.com&amp;scope=email+profile&amp;access_type=online&amp;approval_prompt=auto"
-								class="btn btnLoginGoogle"><span class="ico"></span><i
-								class="bi bi-google"></i><span class="txt">INGRESAR CON
-									GOOGLE</span></a> <a href="javascript:;"
-								onclick="usuarios.showPPObtenerPIN()"
-								class="btn btn02 btnLoginPIN"> <!--  <span class="ico">&#59392;</span> -->
-								<span class="txt">Ingresar sin contraseña</span>
-							</a>
-						</div>
-					</div>
-
-
-					<!-- Modal footer -->
-					<div class="modal-footer"></div>
-
-
+				<!-- Modal footer -->
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Cerrar</button>
 				</div>
 			</div>
-
-
 		</div>
 	</div>
 	<!--End-->
@@ -1452,9 +1496,12 @@
 
 	<!-- *************************************JavaScript Libraries ********************************-->
 	<div id="javaScriptemplate" th:fragment="javaScriptTemplate">
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 
 		<script
-			src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
 		<script src="lib/easing/easing.min.js"></script>
 		<script src="lib/owlcarousel/owl.carousel.min.js"></script>
 

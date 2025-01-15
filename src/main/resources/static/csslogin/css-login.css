@@ -98,10 +98,7 @@ html {
     margin: auto!important
 }
 
-#blkLoginOpciones>.cnt .btn {
-    display: block;
-    margin-bottom: 20px
-}
+
 
 #ppLogin,#ppLoginPIN,#ppObtenerPIN,#ppCrearCuenta,#ppNuevaContrasena,#ppOlvidoContrasena {
     width: 400px

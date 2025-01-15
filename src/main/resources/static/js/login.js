@@ -5,8 +5,8 @@ function isEqual(str1, str2) {
 
 function login() {
 	activarLoader()
-	var mail = $("#txtEmail").val();
-	var pass = $("#txtPassword").val();
+	var mail = $("#emailInput").val();
+	var pass = $("#passwordInput").val();
 	if (sessionStorage.getItem("userId") == null) {
 		sessionStorage.setItem("userId", $("#userId").val());
 	}
@@ -47,9 +47,10 @@ function login() {
 					sessionStorage.setItem("userId", datos.user.id);
 					sessionStorage.setItem("token", datos.resultado);
 					sessionStorage.setItem("cardId", $("#cardId").val());
-					$("#loginAutenticar").modal("hide");
-					mensajeOK("Bienvenido a Multi-Shop " + datos.user.name);
+					//$("#loginAutenticar").modal("hide");
+					//mensajeOK("Bienvenido a Multi-Shop " + datos.user.name);
 					//$('.loader_bg').fadeToggle();
+					location.reload();
 					guardarCarritoConLogin(datos.user.id);
 					
 				} else  {
